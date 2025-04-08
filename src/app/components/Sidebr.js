@@ -19,7 +19,7 @@ function Sidebar() {
     <div className="nk-sidebar nk-sidebar-fixed is-dark" data-content="sidebarMenu">
     <div className="nk-sidebar-element nk-sidebar-head">
       <div className="nk-sidebar-brand">
-        <a href="/" className="logo-link nk-sidebar-logo">
+        <Link href="/" className="logo-link nk-sidebar-logo">
         <Image
   className="logo-light logo-img"
   src="/images/logo.png"
@@ -35,16 +35,16 @@ function Sidebar() {
             alt="logo-dark"
           />
           <span className="nio-version">General</span>
-        </a>
+        </Link>
       </div>
       <div className="nk-menu-trigger mr-n2">
-        <a
+        <Link
           href="#"
           className="nk-nav-toggle nk-quick-nav-icon d-xl-none"
           data-target="sidebarMenu"
         >
           <em className="icon ni ni-arrow-left"></em>
-        </a>
+        </Link>
       </div>
     </div>
     <div className="nk-sidebar-element">
