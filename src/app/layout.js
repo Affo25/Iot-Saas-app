@@ -8,6 +8,7 @@ import Footers from "./components/Footers";
 import Sidebar from "./components/Sidebr";
 import { ToastProvider } from './providers/ToastProvider';
 import Script from "next/script";
+import Header from "./components/Headers";
 
 // Dynamically import Bootstrap and jQuery on the client side
 const BootstrapBundle = dynamic(() => import("bootstrap/dist/js/bootstrap.bundle.min.js"), {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
             <Sidebar />
             {/* Main Content */}
             <div className="nk-wrap">
+              <Header/>
               <div className="nk-content">
                 <div className="container-fluid">
                   <div className="nk-content-inner">{children}</div>
