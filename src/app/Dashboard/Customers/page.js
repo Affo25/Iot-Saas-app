@@ -31,6 +31,10 @@ function Page() {
   const [currentPage, setCurrentPage] = useState(0);
   const customersPerPage = 5;
   const [filteredCustomers, setFilteredCustomers] = useState(customers); // Track filtered customers
+  const [formsData, setFormsData] = useState({
+    selectedDevices: [], // Ensure it's initialized as an empty array
+    // Other form fields...
+  });
 
 
   // Calculate the page range
@@ -84,10 +88,13 @@ function Page() {
     setIsModalOpen(true);
   };
 
+
+
   useEffect(() => {
     // Fetch customers when component mounts
     fetchCustomers();
     fetchDevicesList();
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -182,6 +189,32 @@ function Page() {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "customers.xlsx");
   } 
+
+
+  const handleInputChanges = (e) => {
+    const { name, value, checked } = e.target;
+  
+    if (name === "selectedDevices") {
+      // Update the selectedDevices array
+      setFormsData((prevData) => {
+        const updatedSelectedDevices = checked
+          ? [...prevData.selectedDevices, value] // Add device ID if checked
+          : prevData.selectedDevices.filter((id) => id !== value); // Remove device ID if unchecked
+  
+        return {
+          ...prevData,
+          [name]: updatedSelectedDevices,
+        };
+      });
+    } else {
+      // Handle other form inputs
+      setFormData({
+        ...formsData,
+        [name]: value,
+      });
+    }
+  };
+  
 
   return (
     <div className="nk-content-body">
@@ -481,32 +514,33 @@ function Page() {
                         </div>
                       </div>
                       <div className="col-md-6">
-  <div className="form-group mt-1">
-    <label className="form-label"><span>Select Device to assign</span></label>
-    <div className="form-control-wrap">
-      <select
-        name="status"
-        className={`form-control form-control-lg ${formErrors.status ? 'is-invalid' : ''}`}
-        value={formData.status}
-        onChange={handleInputChange}
-      >
-        <option value="">Select Device</option>
-        {/* Dynamically render device options */}
-        {devices.map((device) => (
-          <option key={device._id} value={device._id}>
-            {device.device_name} {/* Or any other property of the device */}
-          </option>
-        ))}
-      </select>
-      {formErrors.status && (
-        <div className="invalid-feedback">{formErrors.status}</div>
-      )}
-    </div>
-  </div>
+                        <div className="form-group mt-1">
+                          <label className="form-label"><span>Select Devices to assign</span></label>
+                          <div className="form-control-wrap">
+                            {/* Dynamically render device checkboxes */}
+                            {devices.map((device) => (
+                              <div key={device._id} className="form-check">
+                                <input
+                                  type="checkbox"
+                                  name="selectedDevices"
+                                  value={device._id}
+                                  className={`form-check-input ${formErrors.selectedDevices ? 'is-invalid' : ''}`}
+                                  checked={formsData.selectedDevices.includes(device._id)}
+                                  onChange={handleInputChanges}
+                                />
+                                <label className="form-check-label">
+                                  {device.device_name} {/* Or any other property of the device */}
+                                </label>
+                              </div>
+                            ))}
+                            {formErrors.selectedDevices && (
+                              <div className="invalid-feedback">{formErrors.selectedDevices}</div>
+                            )}
+                          </div>
+                        </div>
 </div>
-                    </div>
                  
-
+</div>
                     
                     <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>
                       <div className="col-md-9"></div>
