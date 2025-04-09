@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import Footers from "./components/Footers";
 import Sidebar from "./components/Sidebr";
 import { ToastProvider } from './providers/ToastProvider';
+import Script from "next/script";
 
 // Dynamically import Bootstrap and jQuery on the client side
 const BootstrapBundle = dynamic(() => import("bootstrap/dist/js/bootstrap.bundle.min.js"), {
@@ -19,7 +20,6 @@ const Jquery = dynamic(() => import("jquery/dist/jquery.min.js"), {
 
 export default function RootLayout({ children }) {
   // Static menu items
-  
 
   return (
     <html lang="en">
@@ -27,16 +27,15 @@ export default function RootLayout({ children }) {
         <div className="nk-app-root">
           <div className="nk-main">
             {/* Sidebar */}
-           <Sidebar />
+            <Sidebar />
             {/* Main Content */}
             <div className="nk-wrap">
               <div className="nk-content">
                 <div className="container-fluid">
                   <div className="nk-content-inner">{children}</div>
                 </div>
-
               </div>
-              <Footers/>
+              <Footers />
             </div>
           </div>
         </div>
@@ -44,9 +43,15 @@ export default function RootLayout({ children }) {
         {/* Toast Notifications */}
         <ToastProvider />
 
-        {/* Scripts */}
-        <script src="/Content/assets/js/bundle.js?ver=1.4.0"></script>
-        <script src="/Content/assets/js/scripts.js?ver=1.4.0"></script>
+        {/* Load scripts asynchronously using next/script */}
+        <Script
+          src="/Content/assets/js/bundle.js?ver=1.4.0"
+          strategy="afterInteractive" // Load after the page has been rendered
+        />
+        <Script
+          src="/Content/assets/js/scripts.js?ver=1.4.0"
+          strategy="afterInteractive" // Load after the page has been rendered
+        />
       </body>
     </html>
   );
