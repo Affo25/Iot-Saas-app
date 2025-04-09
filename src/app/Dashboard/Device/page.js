@@ -6,21 +6,21 @@ import 'react-datepicker/dist/react-datepicker.css';
 import useCustomerStore from '../../store/customerStore';
 import ReactPaginate from "react-paginate";
 import * as XLSX from 'xlsx';
+import useDeviceStore from "@/app/store/DeviceStore";
 function Page() {
   const {
     devices,
-    customers,
     loading,
     formData,
     formErrors,
     setFormData,
     validateForm,
-    addCustomer,
-    updateCustomer,
-    fetchCustomers,
-    deleteCustomer,
-    fetchDevicesList
-  } = useCustomerStore();
+    addDevice,
+    editDevices,
+    fetchDevices,
+    deleteDevice,
+    fetchCustomersList
+  } = useDeviceStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -30,12 +30,13 @@ function Page() {
   const [searchQuery, setSearchQuery] = useState("");  // State to hold the search query
   const [currentPage, setCurrentPage] = useState(0);
   const customersPerPage = 5;
-  const [filteredCustomers, setFilteredCustomers] = useState(customers); // Track filtered customers
+  const [filteredCustomers, setFilteredCustomers] = useState(devices); // Track filtered customers
 
 
-  // Calculate the page range
   const offset = currentPage * customersPerPage;
-  const currentCustomers = filteredCustomers.slice(offset, offset + customersPerPage);
+const currentCustomers = Array.isArray(filteredCustomers) && filteredCustomers.length > 0
+  ? filteredCustomers.slice(offset, offset + customersPerPage)
+  : [];
 
   const handlePageClick = (selected) => {
     setCurrentPage(selected.selected);
@@ -51,7 +52,7 @@ function Page() {
   const handleDelete = async (customerId) => {
     try {
       // Call deleteCustomer function from Zustand store
-      const success = await deleteCustomer(customerId);
+      const success = await deleteDevice(customerId);
       if (success) {
         setCloseDeleteModal();
         console.log('Customer deleted successfully');
@@ -68,11 +69,9 @@ function Page() {
 
     // Set form data with customer details
     setFormData({
-      full_name: customer.full_name,
-      email: customer.email,
-      contact: customer.contact,
-      package_name: customer.package_name,
-      package_expiry: new Date(customer.package_expiry),
+      device_name: customer.device_name,
+      device_code: customer.device_code,
+      description: customer.description,
       status: customer.status
     });
 
@@ -86,8 +85,8 @@ function Page() {
 
   useEffect(() => {
     // Fetch customers when component mounts
-    fetchCustomers();
-    fetchDevicesList();
+    fetchDevices();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -107,18 +106,16 @@ function Page() {
   // Effect to update filtered customers whenever searchQuery changes
   useEffect(() => {
     const query = searchQuery.toLowerCase(); // Lowercase search query
-    const updatedFilteredCustomers = customers.filter((customer) => {
+    const updatedFilteredCustomers = devices.filter((customer) => {
       return (
-        (customer.full_name?.toLowerCase().includes(query) ?? false) ||
-        (customer.email?.toLowerCase().includes(query) ?? false) ||
-        (customer.contact?.toLowerCase().includes(query) ?? false) ||
-        (customer.package_name?.toLowerCase().includes(query) ?? false) ||
-        (customer.status?.toLowerCase().includes(query) ?? false)
+        (customer.device_name?.toLowerCase().includes(query) ?? false) ||
+        (customer.device_code?.toLowerCase().includes(query) ?? false)
+       
       );
     });
-    console.log("Updated Filtered Customers:", updatedFilteredCustomers);
+    console.log("Updated Filtered Devices:", updatedFilteredCustomers);
     setFilteredCustomers(updatedFilteredCustomers); // Update the filtered customers
-  }, [searchQuery, customers]);
+  }, [searchQuery, devices]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -127,14 +124,12 @@ function Page() {
 
     // Reset form data and errors when closing modal
     setFormData({
-      full_name: '',
-      email: '',
-      contact: '',
-      package_name: '',
-      package_expiry: null,
-      status: '',
+        device_name: '',
+        device_code: '',
+        description: '',
+        status: '',
     });
-    useCustomerStore.setState({ formErrors: {} });
+    useDeviceStore.setState({ formErrors: {} });
   };
 
   const handleInputChange = (e) => {
@@ -156,13 +151,13 @@ function Page() {
     try {
       if (isEditMode && currentCustomerId) {
         // Update existing customer
-        console.log("Updating customer with ID:", currentCustomerId);
+        console.log("Updating device with ID:", currentCustomerId);
         console.log("Form data:", formData);
-        success = await updateCustomer(currentCustomerId, formData);
+        success = await editDevices(currentCustomerId, formData);
       } else {
         // Add new customer
-        console.log("Adding new customer");
-        success = await addCustomer();
+        console.log("Adding new device");
+        success = await addDevice();
       }
 
       if (success) {
@@ -188,9 +183,9 @@ function Page() {
       <div className="nk-block-head nk-block-head-sm p-0">
         <div className="nk-block-between">
           <div className="nk-block-head-content">
-            <h3 className="nk-block-title page-title">Customers Management</h3>
+            <h3 className="nk-block-title page-title">Devices Management</h3>
             <div className="nk-block-des text-soft">
-              <p>Manage and keep track of all your Customers</p>
+              <p>Manage and keep track of all your Devices</p>
             </div>
           </div>
           <div className="nk-block-head-content">
@@ -223,7 +218,7 @@ function Page() {
                   <div className="card-title-group">
                     <div className="card-title">
                     <h5 className="title">
-                     Total Customers
+                     Total Devices
                      <span className="badge badge-info ml-2">
                      {filteredCustomers.length}
                      </span>
@@ -243,98 +238,78 @@ function Page() {
                 </div>
 
                 <div className="card-inner p-0 table-responsive">
-                  <table className="table  table-hover nowrap  align-middle dataTable-init">
-                    <thead style={{fontSize:"14px",fontWeight:'bold'}} className="tb-tnx-head " id="datatable-default_wrapper">
-                      <tr>
-                        <th scope="col">#</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Contact</th>
-                        <th>Package</th>
-                        <th>Package Expiry</th>
-                        <th>Status</th>
-                        <th>Login Time</th>
-                        <th style={{ width: "18%" }} scope="col">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
-                      {loading ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            <span className="spinner-border text-secondary" role="status">
-                              <span className="visually-hidden">Loading...</span>
-                            </span>
-                          </td>
-                        </tr>
-                      ) : filteredCustomers.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            No customers found. Add a new customer to get started.
-                          </td>
-                        </tr>
-                      ) : currentCustomers.map((customer, index) => (
-                        <tr key={customer._id}>
-                          <td><b>{index + 1}</b></td>
-                          <td>{customer.full_name}</td>
-                          <td>{customer.email}</td>
-                          <td>{customer.contact}</td>
-                          <td>
-                      <span 
-                        className={`badge badge-warning`}>
-                         {customer.package_name}
-                             </span>
-                          </td>
-                          <td>
-                      <span 
-                        className={`badge badge-danger`}>
-                         {new Date(customer.package_expiry).toLocaleDateString()}
-                             </span>
-                          </td>
-                          <td>
-                      <span 
-                        className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'primary' : 'danger'}`}>
-                         {customer.status}
-                             </span>
-                          </td>
-                          <td>
-                      <span 
-                        className={`badge badge-info`}>
-                         {customer.login_time===null?"Not Logged In":customer.login_time}
-                             </span>
-                          </td>
-                          <td className="text-center">
-                            <button className="btn btn-danger btn btn-sm ml-3" onClick={() => {
-                              setCustomerToDelete(customer);
-                              setIsDeleteModalOpen(true);
-                            }}>
-                              <span>Delete</span>
-                            </button>
-                            <button className="btn btn-primary btn btn-sm ml-1" onClick={() => handleEdit(customer)}>
-                              <span>Edit</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                      }
-                    </tbody>
-                   
-                  </table>
-                    {/* Pagination Component */}
-      <ReactPaginate
-        previousLabel={"Previous"}
-        nextLabel={"Next"}
-        pageCount={Math.ceil(filteredCustomers.length / customersPerPage)}
-        onPageChange={handlePageClick}
-        containerClassName={"pagination justify-content-end"}
-        pageClassName={"page-item"}
-        pageLinkClassName={"page-link"}
-        previousClassName={"page-item"}
-        previousLinkClassName={"page-link"}
-        nextClassName={"page-item"}
-        nextLinkClassName={"page-link"}
-        activeClassName={"active"}
-      />
-                </div>
+  <table className="table table-hover nowrap align-middle dataTable-init">
+    <thead style={{ fontSize: "14px", fontWeight: 'bold' }} className="tb-tnx-head" id="datatable-default_wrapper">
+      <tr>
+        <th scope="col">#</th>
+        <th>Device Name</th>
+        <th>Device Code</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th style={{ width: "14%" }} scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
+      {loading ? (
+        <tr>
+          <td colSpan="6" className="text-center">
+            <span className="spinner-border text-secondary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </span>
+          </td>
+        </tr>
+      ) : filteredCustomers.length === 0 ? (
+        <tr>
+          <td colSpan="6" className="text-center">
+            No customers found. Add a new customer to get started.
+          </td>
+        </tr>
+      ) : currentCustomers.map((customer, index) => (
+        <tr key={customer._id}>
+          <td><b>{index + 1}</b></td>
+          <td>{customer.device_name}</td>
+          <td>{customer.device_code}</td>
+          <td>{customer.description}</td>
+          <td>
+            <span className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'primary' : 'danger'}`}>
+              {customer.status}
+            </span>
+          </td>
+          <td className="text-center">
+            <button className="btn btn-danger btn-sm ml-3" onClick={() => {
+              setCustomerToDelete(customer);
+              setIsDeleteModalOpen(true);
+            }}>
+              <span>Delete</span>
+            </button>
+            <button className="btn btn-primary btn-sm ml-1" onClick={() => handleEdit(customer)}>
+              <span>Edit</span>
+            </button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  
+
+  {/* Pagination Component */}
+  <ReactPaginate
+    previousLabel={"Previous"}
+    nextLabel={"Next"}
+    pageCount={Math.ceil(filteredCustomers.length / customersPerPage)}
+    onPageChange={handlePageClick}
+    containerClassName={"pagination justify-content-end"}
+    pageClassName={"page-item"}
+    pageLinkClassName={"page-link"}
+    previousClassName={"page-item"}
+    previousLinkClassName={"page-link"}
+    nextClassName={"page-item"}
+    nextLinkClassName={"page-link"}
+    activeClassName={"active"}
+  />
+</div>
+
               </div>
             </div>
           </div>
@@ -347,7 +322,7 @@ function Page() {
               <div className="modal-content">
                 <div className="modal-header bg-primary">
                   <h5 className="modal-title text-white">
-                    <span>{isEditMode ? 'Edit Customer Detail' : 'Add Customer Detail'}</span>
+                    <span>{isEditMode ? 'Edit Device Detail' : 'Add Device Detail'}</span>
                   </h5>
                   <button style={{ color: "#fff" }} className="close" onClick={closeModal} aria-label="Close">
                     <em className="icon ni ni-cross-sm"></em>
@@ -355,27 +330,27 @@ function Page() {
                 </div>
                 <form onSubmit={handleSubmit}>
                   <div className="modal-body pt-3">
-                    {useCustomerStore.getState().error && (
+                    {useDeviceStore.getState().error && (
                       <div className="alert alert-danger">
-                        {useCustomerStore.getState().error}
+                        {useDeviceStore.getState().error}
                       </div>
                     )}
                     
                     <div className="row">
                       <div className="col-md-6">
                         <div className="form-group mt-1">
-                          <label className="form-label"><span>Full Name</span></label>
+                          <label className="form-label"><span>Device Name</span></label>
                           <div className="form-control-wrap">
                             <input
                               type="text"
-                              name="full_name"
-                              className={`form-control form-control-lg ${formErrors.full_name ? 'is-invalid' : ''}`}
-                              placeholder="Enter Full Name"
-                              value={formData.full_name}
+                              name="device_name"
+                              className={`form-control form-control-lg ${formErrors.device_name ? 'is-invalid' : ''}`}
+                              placeholder="Enter device_name"
+                              value={formData.device_name}
                               onChange={handleInputChange}
                             />
-                            {formErrors.full_name && (
-                              <div className="invalid-feedback">{formErrors.full_name}</div>
+                            {formErrors.device_name && (
+                              <div className="invalid-feedback">{formErrors.device_name}</div>
                             )}
                           </div>
                         </div>
@@ -383,64 +358,42 @@ function Page() {
                       
                       <div className="col-md-6">
                         <div className="form-group mt-1">
-                          <label className="form-label"><span>Email</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="email"
-                              name="email"
-                              className={`form-control form-control-lg ${formErrors.email ? 'is-invalid' : ''}`}
-                              placeholder="Enter Email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                            />
-                            {formErrors.email && (
-                              <div className="invalid-feedback">{formErrors.email}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Contact</span></label>
+                          <label className="form-label"><span>Device Code</span></label>
                           <div className="form-control-wrap">
                             <input
                               type="text"
-                              name="contact"
-                              className={`form-control form-control-lg ${formErrors.contact ? 'is-invalid' : ''}`}
-                              placeholder="Enter Contact"
-                              value={formData.contact}
+                              name="device_code"
+                              className={`form-control form-control-lg ${formErrors.device_code ? 'is-invalid' : ''}`}
+                              placeholder="Enter device_code"
+                              value={formData.device_code}
                               onChange={handleInputChange}
                             />
-                            {formErrors.contact && (
-                              <div className="invalid-feedback">{formErrors.contact}</div>
+                            {formErrors.device_code && (
+                              <div className="invalid-feedback">{formErrors.device_code}</div>
                             )}
                           </div>
                         </div>
                       </div>
                       
                       <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Package Name</span></label>
-                          <div className="form-control-wrap">
-                            <select
-                              name="package_name"
-                              className={`form-control form-control-lg ${formErrors.package_name ? 'is-invalid' : ''}`}
-                              value={formData.package_name}
-                              onChange={handleInputChange}
-                            >
-                              <option value="">Select Package</option>
-                              <option value="Basic">Basic</option>
-                              <option value="Standard">Standard</option>
-                              <option value="Premium">Premium</option>
-                            </select>
-                            {formErrors.package_name && (
-                              <div className="invalid-feedback">{formErrors.package_name}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                     
+  <div className="form-group mt-1">
+    <label className="form-label"><span>Description</span></label>
+    <div className="form-control-wrap">
+      <textarea
+        name="description"
+        className={`form-control form-control-lg ${formErrors.description ? 'is-invalid' : ''}`}
+        placeholder="Enter description"
+        value={formData.description}
+        onChange={handleInputChange}
+      />
+      {formErrors.description && (
+        <div className="invalid-feedback">{formErrors.description}</div>
+      )}
+    </div>
+  </div>
+</div>
+
+            
                       <div className="col-md-6">
                         <div className="form-group mt-1">
                           <label className="form-label"><span>Status</span></label>
@@ -453,8 +406,7 @@ function Page() {
                             >
                               <option value="">Select Status</option>
                               <option value="Active">Active</option>
-                              <option value="Inactive">Inactive</option>
-                              <option value="Pending">Pending</option>
+                              <option value="Active">InActive</option>
                             </select>
                             {formErrors.status && (
                               <div className="invalid-feedback">{formErrors.status}</div>
@@ -462,51 +414,7 @@ function Page() {
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Package Expiry</span></label>
-                          <div className="form-control-wrap">
-                            <DatePicker
-                              selected={formData.package_expiry}
-                              onChange={handleDateChange}
-                              className={`form-control form-control-lg ${formErrors.package_expiry ? 'is-invalid' : ''}`}
-                              placeholderText="Select expiry date"
-                              dateFormat="MMMM d, yyyy"
-                              minDate={new Date()}
-                            />
-                            {formErrors.package_expiry && (
-                              <div className="invalid-feedback">{formErrors.package_expiry}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-  <div className="form-group mt-1">
-    <label className="form-label"><span>Select Device to assign</span></label>
-    <div className="form-control-wrap">
-      <select
-        name="status"
-        className={`form-control form-control-lg ${formErrors.status ? 'is-invalid' : ''}`}
-        value={formData.status}
-        onChange={handleInputChange}
-      >
-        <option value="">Select Device</option>
-        {/* Dynamically render device options */}
-        {devices.map((device) => (
-          <option key={device._id} value={device._id}>
-            {device.device_name} {/* Or any other property of the device */}
-          </option>
-        ))}
-      </select>
-      {formErrors.status && (
-        <div className="invalid-feedback">{formErrors.status}</div>
-      )}
-    </div>
-  </div>
-</div>
                     </div>
-                 
-
                     
                     <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>
                       <div className="col-md-9"></div>
@@ -523,7 +431,7 @@ function Page() {
                            </div>
                          </div>
                           ) : (
-                            <span>{isEditMode ? 'Update Customer' : 'Save Customer'}</span>
+                            <span>{isEditMode ? 'Update Device' : 'Save Device'}</span>
                           )}
                         </button>
                       </div>

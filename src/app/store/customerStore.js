@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 const useCustomerStore = create((set) => ({
   customers: [],
+  devices: [],
   loading: false,
   error: null,
   formData: {
@@ -229,6 +230,26 @@ const useCustomerStore = create((set) => ({
       // Handle errors and stop loading
       set({ loading: false, error: error.response?.data?.message || 'Failed to update customer' });
       console.error('Error updating customer:', error);
+    }
+  },
+
+  fetchDevicesList: async () => {
+    try {
+      set({ loading: true });
+      const response = await axios.get('/api/Devices');
+      console.log("Fetch customers response:", response.data);
+      
+      // Extract devices array from the response
+      if (response.data && response.data.devices) {
+        set({ devices: response.data.devices, loading: false });
+      } else {
+        set({ devices: [], loading: false });
+        console.error('Unexpected API response format:', response.data);
+      }
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Failed to fetch devices', loading: false });
+      console.error('Error fetching devices:', error);
+      console.error('Error details:', error.response?.data);
     }
   },
   
