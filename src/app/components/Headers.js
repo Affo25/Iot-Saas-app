@@ -1,6 +1,19 @@
+
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React from 'react'
 
+
 function Headers() {
+
+  const router = useRouter();
+
+  const handleRedirect = () => {
+    router.push('/Auth/Login'); // Redirects to login page
+  };
+
+
   return (
     <div className="nk-header is-light">
       <div className="container-fluid">
@@ -25,7 +38,7 @@ function Headers() {
                     <div className="user-avatar sm">
                       <em className="icon ni ni-user-alt"></em>
                     </div>
-                    <div className="user-info d-none d-md-block">
+                    <div onClick={handleRedirect} className="user-info d-none d-md-block">
                       Admin
                     </div>
                   </div>
