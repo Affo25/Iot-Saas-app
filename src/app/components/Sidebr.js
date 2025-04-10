@@ -9,9 +9,9 @@ function Sidebar() {
     const menuList = [
         { menu_url: "/", menu_title: "Dashboard" },
         { menu_url: "/Dashboard/Customers", menu_title: "Customers" },
+        { menu_url: "/Dashboard/Device", menu_title: "Devices" },
         { menu_url: "/page2", menu_title: "Packages" },
         { menu_url: "/page3", menu_title: "Users" },
-        { menu_url: "/Dashboard/Device", menu_title: "Devices" },
         { menu_url: "/page5", menu_title: "Product Mngement"},
       ];
 

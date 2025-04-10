@@ -1,4 +1,5 @@
 // models/Customer.js
+import { type } from 'jquery';
 import mongoose from 'mongoose';
 
 const customerSchema = new mongoose.Schema({
@@ -34,6 +35,12 @@ const customerSchema = new mongoose.Schema({
     enum: ['Active', 'Inactive', 'Pending', 'Expired'],
     default: 'Active',
   },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6,  // Ensures the password is at least 6 characters
+    maxlength: 10,  // Ensures the password does not exceed 6 characters
+  },
   created_at: {
     type: Date,
     default: Date.now, // Automatically set on creation
@@ -42,6 +49,10 @@ const customerSchema = new mongoose.Schema({
   login_time: {
     type: Date,
     default: null,     // Will be updated on login
+  },
+  devices:{
+    type:[String],
+    default:[]
   },
 }, {
   timestamps: false,   // Disable default Mongoose timestamps (since we have custom ones)

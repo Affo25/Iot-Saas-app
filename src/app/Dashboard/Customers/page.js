@@ -69,24 +69,37 @@ function Page() {
 
   const handleEdit = (customer) => {
     console.log("Editing customer:", customer);
-
-    // Set form data with customer details
+  
+    const selectedDevices = customer.devices
+      ? customer.devices.map(device =>
+          typeof device === 'object' ? device.device_name : device
+        )
+      : [];
+  
+    // Set formData with customer info including devices
     setFormData({
       full_name: customer.full_name,
       email: customer.email,
       contact: customer.contact,
       package_name: customer.package_name,
       package_expiry: new Date(customer.package_expiry),
-      status: customer.status
+      status: customer.status,
+      devices: selectedDevices  // ✅ Use updated selected devices directly
     });
-
+  
+    // Also update formsData for the checkboxes
+    setFormsData({
+      selectedDevices: selectedDevices
+    });
+  
     // Set edit mode and current customer ID
     setIsEditMode(true);
     setCurrentCustomerId(customer._id);
-
+  
     // Open the modal
     setIsModalOpen(true);
   };
+  
 
 
 
@@ -140,7 +153,14 @@ function Page() {
       package_name: '',
       package_expiry: null,
       status: '',
+      devices: [],
     });
+    
+    // Reset formsData state as well
+    setFormsData({
+      selectedDevices: [], // Use selectedDevices to match the checkbox name
+    });
+    
     useCustomerStore.setState({ formErrors: {} });
   };
 
@@ -148,6 +168,8 @@ function Page() {
     const { name, value } = e.target;
     setFormData({ [name]: value });
   };
+  
+
 
   const handleDateChange = (date) => {
     setFormData({ package_expiry: date });
@@ -155,23 +177,47 @@ function Page() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // Validate the form data
     if (!validateForm()) return;
-
+  
     let success;
-
+  
     try {
+      // Make a copy of the current form data
+      const currentFormData = { ...formData };
+      
+      // Always use the selectedDevices from formsData
+      const selectedDevices = formsData.selectedDevices || [];
+      console.log("Selected devices for submission:", selectedDevices);
+      
+      // Handle customer update
       if (isEditMode && currentCustomerId) {
-        // Update existing customer
         console.log("Updating customer with ID:", currentCustomerId);
-        console.log("Form data:", formData);
-        success = await updateCustomer(currentCustomerId, formData);
+        
+        // Create the updated data with devices
+        const updatedData = {
+          ...currentFormData,
+          devices: selectedDevices
+        };
+        
+        console.log("Sending update data:", updatedData);
+        success = await updateCustomer(currentCustomerId, updatedData);
       } else {
-        // Add new customer
+        // Handle adding a new customer
         console.log("Adding new customer");
-        success = await addCustomer();
+  
+        // Create new customer data with devices
+        const newCustomerData = {
+          ...currentFormData,
+          devices: selectedDevices
+        };
+        
+        console.log("Sending new customer data:", newCustomerData);
+        success = await addCustomer(newCustomerData);
       }
-
+  
+      // After a successful operation, close the modal
       if (success) {
         closeModal();
       } else {
@@ -179,6 +225,42 @@ function Page() {
       }
     } catch (error) {
       console.error("Error in handleSubmit:", error);
+    }
+  };
+  
+
+  const handleInputChanges = (e) => {
+    const { name, value, checked } = e.target;
+  
+    console.log(`Input changed: ${name}, Value: ${value}, Checked: ${checked}`);
+  
+    if (name === "selectedDevices") {
+      const updatedSelectedDevices = checked
+        ? [...formsData.selectedDevices, value] // Add selected device
+        : formsData.selectedDevices.filter((device) => device !== value); // Remove unselected
+  
+      // Update formsData state
+      setFormsData((prev) => ({
+        ...prev,
+        selectedDevices: updatedSelectedDevices,
+      }));
+  
+      // Sync selected devices with formData.devices
+      setFormData((prev) => ({
+        ...prev,
+        devices: updatedSelectedDevices,
+      }));
+  
+      console.log("Synced 'devices' with formData:", {
+        ...formData,
+        devices: updatedSelectedDevices,
+      });
+    } else {
+      // Handle other input fields
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
@@ -190,30 +272,9 @@ function Page() {
     XLSX.writeFile(wb, "customers.xlsx");
   } 
 
-
-  const handleInputChanges = (e) => {
-    const { name, value, checked } = e.target;
   
-    if (name === "selectedDevices") {
-      // Update the selectedDevices array
-      setFormsData((prevData) => {
-        const updatedSelectedDevices = checked
-          ? [...prevData.selectedDevices, value] // Add device ID if checked
-          : prevData.selectedDevices.filter((id) => id !== value); // Remove device ID if unchecked
   
-        return {
-          ...prevData,
-          [name]: updatedSelectedDevices,
-        };
-      });
-    } else {
-      // Handle other form inputs
-      setFormData({
-        ...formsData,
-        [name]: value,
-      });
-    }
-  };
+  
   
 
   return (
@@ -286,8 +347,10 @@ function Page() {
                         <th>Package</th>
                         <th>Package Expiry</th>
                         <th>Status</th>
+                        <th>Password</th>
+                        <th>Devices</th>
                         <th>Login Time</th>
-                        <th style={{ width: "18%" }} scope="col">Action</th>
+                        <th style={{ width: "12%" }} scope="col">Action</th>
                       </tr>
                     </thead>
                     <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
@@ -328,6 +391,28 @@ function Page() {
                         className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'primary' : 'danger'}`}>
                          {customer.status}
                              </span>
+                          </td>
+                          <td>{customer.password}</td>
+                          <td>
+                      {customer.devices && customer.devices.length > 0 ? (
+                        <div>
+                          <span className="badge badge-secondary mb-1">
+                            {customer.devices.length} device(s)
+                          </span>
+                          <div style={{ fontSize: '0.8rem' }}>
+                            {customer.devices.map((device, idx) => (
+                              <div key={idx} className="text-muted">
+                                {device.device_name || (typeof device === 'string' ? device : 'Unknown')}
+                              </div>
+                            )).slice(0, 2)}
+                            {customer.devices.length > 2 && (
+                              <div className="text-muted">...</div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="badge badge-secondary">No devices</span>
+                      )}
                           </td>
                           <td>
                       <span 
@@ -432,6 +517,25 @@ function Page() {
                           </div>
                         </div>
                       </div>
+
+                      <div className="col-md-6">
+                        <div className="form-group mt-1">
+                          <label className="form-label"><span>Password</span></label>
+                          <div className="form-control-wrap">
+                            <input
+                              type="text"
+                              name="password"
+                              className={`form-control form-control-lg ${formErrors.password ? 'is-invalid' : ''}`}
+                              placeholder="Enter password"
+                              value={formData.password}
+                              onChange={handleInputChange}
+                            />
+                            {formErrors.password && (
+                              <div className="invalid-feedback">{formErrors.password}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                       
                       <div className="col-md-6">
                         <div className="form-group mt-1">
@@ -519,13 +623,13 @@ function Page() {
                           <div className="form-control-wrap">
                             {/* Dynamically render device checkboxes */}
                             {devices.map((device) => (
-                              <div key={device._id} className="form-check">
+                              <div key={device.device_name} className="form-check">
                                 <input
                                   type="checkbox"
                                   name="selectedDevices"
-                                  value={device._id}
+                                  value={device.device_name}
                                   className={`form-check-input ${formErrors.selectedDevices ? 'is-invalid' : ''}`}
-                                  checked={formsData.selectedDevices.includes(device._id)}
+                                  checked={formsData.selectedDevices && formsData.selectedDevices.includes(device.device_name)}
                                   onChange={handleInputChanges}
                                 />
                                 <label className="form-check-label">
