@@ -1,62 +1,85 @@
-
 'use client';
 
+import React, { useEffect } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { useRouter } from 'next/navigation';
-import React from 'react'
+import useUserRoleStore from '../../app/store/userRoleStore';
 
-
-function Headers() {
-
+export default function Headers() {
   const router = useRouter();
+  const setRole = useUserRoleStore((state) => state.setRole);
+
+  // Dynamically import Bootstrap JS on client only
+  useEffect(() => {
+    import('bootstrap/dist/js/bootstrap.bundle.min.js');
+  }, []);
 
   const handleRedirect = () => {
-    router.push('/Auth/Login'); // Redirects to login page
+    router.push('/Auth/Login'); // Redirects to login
   };
 
+  const handleRoleClick = (role) => {
+    setRole(role); // Save role to global store
+    console.log("Selected Role:", role);
+  };
 
   return (
     <div className="nk-header is-light">
       <div className="container-fluid">
         <div className="nk-header-wrap">
-          <div className="nk-menu-trigger d-xl-none ml-n1">
-            <a href="#" className="nk-nav-toggle nk-quick-nav-icon" data-target="sidebarMenu"><em className="icon ni ni-menu"></em></a>
-          </div>
-          <div className="nk-header-brand d-xl-none">
-            <a href="html/crypto/index.html" className="logo-link">
-              <img className="logo-light logo-img" src="/content/images/logo.png" srcSet="/content/images/logo2x.png 2x" alt="logo" />
-              <img className="logo-dark logo-img" src="/content/images/logo-dark.png" srcSet="/content/images/logo-dark2x.png 2x" alt="logo-dark" />
-              <span className="nio-version">General</span>
-            </a>
-          </div>
-          {/* Page title would go here */}
-
           <div className="nk-header-tools">
             <ul className="nk-quick-nav">
               <li className="dropdown user-dropdown">
-                <a href="#" className="dropdown-toggle" data-toggle="dropdown">
+                <button
+                  className="dropdown-toggle btn btn-clean"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  style={{ background: 'transparent', border: 'none' }}
+                >
                   <div className="user-toggle">
                     <div className="user-avatar sm">
                       <em className="icon ni ni-user-alt"></em>
                     </div>
-                    <div onClick={handleRedirect} className="user-info d-none d-md-block">
+                    <div className="user-info d-none d-md-block">
                       Admin
                     </div>
                   </div>
-                </a>
-                <div className="dropdown-menu dropdown-menu-md dropdown-menu-right dropdown-menu-s1">
-                  <div className="dropdown-inner">
-                    <ul className="link-list">
-                      <li><a href="/logout"><em className="icon ni ni-signout"></em><span>Sign out</span></a></li>
-                    </ul>
-                  </div>
-                </div>
+                </button>
+
+                <ul className="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1 show">
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => handleRoleClick('Admin')}
+                    >
+                      <em className="icon ni ni-user mr-2"></em>
+                      <span style={{ color: '#007bff' ,fontSize:"14px" ,fontWeight:"bold",fontFamily:"Roboto" }}>Admin</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => handleRoleClick('Customer')}
+                    >
+                      <em className="icon ni ni-users mr-2"></em>
+                      <span style={{ color: '#007bff' ,fontSize:"14px" ,fontWeight:"bold",fontFamily:"Roboto"}}>Customer</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={handleRedirect}
+                    >
+                      <em className="icon ni ni-signout mr-2 "></em>
+                      <span style={{ color: '#007bff' ,fontSize:"14px" ,fontWeight:"bold",fontFamily:"Roboto" }}>Login</span>
+                    </button>
+                  </li>
+                </ul>
               </li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-export default Headers

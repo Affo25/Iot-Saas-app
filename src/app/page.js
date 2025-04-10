@@ -11,23 +11,6 @@ export default function Home() {
   };
 
   return (
-    <ul className="nk-block-tools gx-3">
-      <li>
-        <button
-          className="btn btn-success ml-1"
-          onClick={() => handleRoleClick("Customer")}
-        >
-          <span>Customers</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-primary ml-1"
-          onClick={() => handleRoleClick("Admin")}
-        >
-          <span>Admin</span>
-        </button>
-      </li>
-    </ul>
+    <h1>This is Dashboard page!</h1>
   );
 }
