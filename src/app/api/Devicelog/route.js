@@ -189,7 +189,6 @@ export async function PUT(request) {
 
     // ✅ Check for existing customer (excluding the current one)
     const existingCustomer = await DeviceLog.findOne({
-      email,
       _id: { $ne: _id }
     });
 
