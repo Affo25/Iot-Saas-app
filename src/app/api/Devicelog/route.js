@@ -28,25 +28,25 @@ export async function POST(request) {
       );
     }
 
-    // Ensure devices is always an array
-    let devicesList = [];
+    // // Ensure devices is always an array
+    // let devicesList = [];
     
-    // Handle different formats of devices data
-    if (Array.isArray(body.devices)) {
-      devicesList = body.devices; // Use devices as is if it's already an array
-    } else if (typeof body.devices === 'string' && body.devices.trim() !== "") {
-      // If it's a string, just use it as a single device
-      devicesList = [body.devices];
-    }
+    // // Handle different formats of devices data
+    // if (Array.isArray(body.devices)) {
+    //   devicesList = body.devices; // Use devices as is if it's already an array
+    // } else if (typeof body.devices === 'string' && body.devices.trim() !== "") {
+    //   // If it's a string, just use it as a single device
+    //   devicesList = [body.devices];
+    // }
 
-    // Add new field to the customer (newField can be any field)
-    const newFieldValue = body.newField || 'default value'; // Set a default value if not provided
+    // // Add new field to the customer (newField can be any field)
+    // const newFieldValue = body.newField || 'default value'; // Set a default value if not provided
 
-    // Log devices list to verify
-    console.log("Devices List:", devicesList);
-    console.log("Devices List Type:", typeof devicesList);
-    console.log("Is Devices List Array:", Array.isArray(devicesList));
-    console.log("Devices List Length:", devicesList.length);
+    // // Log devices list to verify
+    // console.log("Devices List:", devicesList);
+    // console.log("Devices List Type:", typeof devicesList);
+    // console.log("Is Devices List Array:", Array.isArray(devicesList));
+    // console.log("Devices List Length:", devicesList.length);
 
     // Create new customer with the new field
     const customer = new DeviceLog({
