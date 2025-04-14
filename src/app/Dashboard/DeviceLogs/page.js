@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import 'react-datepicker/dist/react-datepicker.css';
-import useCustomerDeviceStore from '../../store/CustomerDevice_store';
+import useDeviceLogsStore from '../../store/DeviceLogStore';
 import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -10,40 +10,37 @@ import { saveAs } from 'file-saver';
 
 function Page() {
   const {
-    CustomersDevice,
-    customer,
+    deviceLogs,
     loading,
     formData,
     formErrors,
     setFormData,
+    setMetaData,
     validateForm,
-    addCustomerDevice,
-    updateCustomerDevice,
-    fetchCustomerDevice,
-    deleteCustomerDevice,
-    fetchSingleCustomer
-  } = useCustomerDeviceStore();
+    addDeviceLog,
+    updateDeviceLog,
+    fetchDeviceLogs,
+    deleteDeviceLog
+  } = useDeviceLogsStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+    const [filteredCustomers, setFilteredCustomers] = useState(deviceLogs); // Track filtered customers
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [currentCustomerId, setCurrentCustomerId] = useState(null);
-  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [currentLogId, setCurrentLogId] = useState(null);
+  const [logToDelete, setLogToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");  // State to hold the search query
   const [currentPage, setCurrentPage] = useState(0);
+  const [metaString, setMetaString] = useState('{}');
   const customersPerPage = 5;
-  const [filteredCustomers, setFilteredCustomers] = useState(CustomersDevice); // Track filtered customers
-  const [formsData, setFormsData] = useState({
-    selectedDevices: [], // Ensure it's initialized as an empty array
-    // Other form fields...
-  });
+  const [filteredLogs, setFilteredLogs] = useState(deviceLogs); // Track filtered logs
+  const [deviceCodeFilter, setDeviceCodeFilter] = useState("");
 
-
-  console.log("Filtered Customers:", filteredCustomers);
-  const customersList = Array.isArray(filteredCustomers) ? filteredCustomers : [];
+  console.log("Filtered Logs:", filteredLogs);
+  const logsList = Array.isArray(filteredLogs) ? filteredLogs : [];
 
   const offset = currentPage * customersPerPage;
-  const currentCustomers = CustomersDevice.slice(offset, offset + customersPerPage);
+  const currentLogs = filteredLogs.slice(offset, offset + customersPerPage);
 
   const handlePageClick = (selected) => {
     setCurrentPage(selected.selected);
@@ -56,15 +53,15 @@ function Page() {
 
 
 
-  const handleDelete = async (customerId) => {
+  const handleDelete = async (logId) => {
     try {
-      // Call deleteCustomer function from Zustand store
-      const success = await deleteCustomerDevice(customerId);
+      // Call deleteDeviceLog function from Zustand store
+      const success = await deleteDeviceLog(logId);
       if (success) {
         setCloseDeleteModal();
-        console.log('Customer deleted successfully');
+        console.log('Device log deleted successfully');
       } else {
-        console.error('Failed to delete customer');
+        console.error('Failed to delete device log');
       }
     } catch (error) {
       console.error('Error in handleDelete:', error);
@@ -76,13 +73,8 @@ function Page() {
 
 
   useEffect(() => {
-    // Replace with your actual source of customerId
-    const customerId = '67f621c47111f9c67cfc796f'; // or get it from state/props
-
-    fetchCustomerDevice();
-    fetchSingleCustomer(customerId);
-    console.log("Current Customer detail:", customer);
-
+    // Fetch device logs on component mount
+    fetchDeviceLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -99,61 +91,55 @@ function Page() {
     setCustomerToDelete(null);
   };
 
-  // Effect to update filtered customers whenever searchQuery changes
+  // Effect to update filtered logs whenever searchQuery changes
   useEffect(() => {
     const query = searchQuery.toLowerCase(); // Lowercase search query
-    const updatedFilteredCustomers = CustomersDevice.filter((customer) => {
+    const updatedFilteredLogs = deviceLogs.filter((log) => {
       return (
-        (customer.title?.toLowerCase().includes(query) ?? false) ||
-        (customer.device_code?.toLowerCase().includes(query) ?? false) ||
-        (customer.device_serial_number?.toLowerCase().includes(query) ?? false)
-
+        (log.device_code?.toLowerCase().includes(query) ?? false) ||
+        (String(log.temperature)?.includes(query) ?? false) ||
+        (String(log.humidity)?.includes(query) ?? false) ||
+        (JSON.stringify(log.meta)?.toLowerCase().includes(query) ?? false)
       );
     });
-    console.log("Updated Filtered Customers:", updatedFilteredCustomers);
-    setFilteredCustomers(updatedFilteredCustomers); // Update the filtered customers
-  }, [searchQuery, CustomersDevice]);
+    console.log("Updated Filtered Logs:", updatedFilteredLogs);
+    setFilteredLogs(updatedFilteredLogs); // Update the filtered logs
+  }, [searchQuery, deviceLogs]);
 
   const closeModal = () => {
     setIsModalOpen(false);
     setIsEditMode(false);
-    setCurrentCustomerId(null);
+    setCurrentLogId(null);
 
     // Reset form data and errors when closing modal
     setFormData({
-      title: '',
-      description: '',
       device_code: '',
-      device_serial_number: '',
-      customer_id: '',
-      status: '',
+      humidity: 0,
+      temperature: 0,
+      meta: {}
     });
 
-    // Reset formsData state as well
-    setFormsData({
-      selectedDevices: [], // Use selectedDevices to match the checkbox name
-    });
+    // Reset meta string
+    setMetaString('{}');
 
-    useCustomerDeviceStore.setState({ formErrors: {} });
+    // Clear form errors
+    useDeviceLogsStore.setState({ formErrors: {} });
   };
 
-  const handleInputChanges = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ [name]: value });
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, checked, type } = e.target;
-    
-    if (name === "selectedDevices") {
-      const updatedSelectedDevices = checked
-        ? [...(formsData.selectedDevices || []), value]
-        : (formsData.selectedDevices || []).filter((device) => device !== value);
-  
-      setFormsData(prev => ({ ...prev, selectedDevices: updatedSelectedDevices }));
-      setFormData(prev => ({ ...prev, device_code: updatedSelectedDevices[0] || '' }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+  // Handle meta data changes
+  const handleMetaChange = (e) => {
+    setMetaString(e.target.value);
+    try {
+      const parsedMeta = JSON.parse(e.target.value);
+      setMetaData(parsedMeta);
+    } catch (error) {
+      // Don't update the form data if JSON is invalid
+      console.error("Invalid JSON:", error);
     }
   };
 
@@ -163,90 +149,93 @@ function Page() {
     setFormData({ package_expiry: date });
   };
 
-  const handleEdit = (customerDevice) => {
-    console.log("Editing customer device:", customerDevice);
+  const handleEdit = (deviceLog) => {
+    console.log("Editing device log:", deviceLog);
 
-    // Extract device names from customer's devices array (if available)
-    const selectedDevices = customerDevice.devices
-      ? customerDevice.devices.map(device =>
-        typeof device === 'object' ? device.device_name || device : device
-      )
-      : [];
-
-    // Set formData with customer device info
+    // Set formData with device log info
     setFormData({
-      title: customerDevice.title || '',
-      description: customerDevice.description || '',
-      device_code: customerDevice.device_code || '',
-      device_serial_number: customerDevice.device_serial_number || '',
-      status: customerDevice.status || '',
-      customer_id: customerDevice.customer_id || (customer?._id || '')
+      device_code: deviceLog.device_code || '',
+      humidity: deviceLog.humidity || 0,
+      temperature: deviceLog.temperature || 0,
+      meta: deviceLog.meta || {}
     });
 
-    // Update formsData for the checkboxes
-    setFormsData({
-      selectedDevices: selectedDevices.includes(customerDevice.device_code)
-        ? selectedDevices
-        : customerDevice.device_code
-          ? [...selectedDevices, customerDevice.device_code]
-          : selectedDevices
-    });
+    // Convert meta object to string for editing
+    setMetaString(JSON.stringify(deviceLog.meta || {}, null, 2));
 
-    // Set edit mode and current device ID
+    // Set edit mode and current log ID
     setIsEditMode(true);
-    setCurrentCustomerId(customerDevice._id);
+    setCurrentLogId(deviceLog._id);
 
     // Open the modal
     setIsModalOpen(true);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate the form data
-    if (!validateForm()) return;
-
-    let success;
-
+    console.log("📤 Calling submit");
+  
+    // Ensure you are using the zustand store correctly
+    const isValid = validateForm(); // This should be imported from the store
+    if (!isValid) return;
+  
     try {
-      const selectedDevices = formsData.selectedDevices || [];
-      console.log("Selected devices for submission:", selectedDevices);
-
+      let metaObject = {};
+  
+      // Check and parse the meta string
+      if (typeof formData.meta === 'string') {
+        try {
+          metaObject = JSON.parse(formData.meta);
+          console.log("✅ Meta object parsed:", metaObject);
+        } catch (err) {
+          console.error("❌ Invalid JSON in meta data:", err);
+          setFormErrors((prev) => ({
+            ...prev,
+            meta: "Invalid JSON format"
+          }));
+          return;
+        }
+      } else {
+        metaObject = formData.meta;
+      }
+  
       const updatedFormData = {
         ...formData,
-        device_code: selectedDevices[0] || "",
-        customer_id: customer?._id || "",
-        description: formData.description || "",
+        meta: metaObject,
+        humidity: Number(formData.humidity),
+        temperature: Number(formData.temperature)
       };
-
-      if (isEditMode && currentCustomerId) {
-        console.log("Updating customer with ID:", currentCustomerId);
-        console.log("Updated Form Data to Submit:", updatedFormData);
-
-        success = await updateCustomerDevice(currentCustomerId, updatedFormData);
+  
+      console.log("🚀 Form data to submit:", updatedFormData);
+  
+      let success = false;
+      if (isEditMode && currentLogId) {
+        console.log("🛠 Updating device log with ID:", currentLogId);
+        success = await updateDeviceLog(currentLogId, updatedFormData);
       } else {
-        console.log("Adding new customerDevice");
-
-        // Pass the updatedFormData to Zustand function
-        success = await addCustomerDevice(updatedFormData);
+        console.log("➕ Adding new device log");
+        success = await addDeviceLog(updatedFormData);
       }
-
+  
       if (success) {
+        console.log("🎉 Operation successful");
         closeModal();
+        fetchDeviceLogs(deviceCodeFilter || null);
       } else {
-        console.error("Operation failed but no exception was thrown");
+        console.error("⚠️ Operation failed");
       }
     } catch (error) {
-      console.error("Error in handleSubmit:", error);
+      console.error("🚨 Error in handleSubmit:", error);
     }
   };
+  
+  
 
 
    const exportJsonToExcel = async (jsonData, fileName = 'device_data.xlsx') => {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Sheet 1');
     
-      const dataArray = Array.isArray(customer) ? customer : [customer];
+      const dataArray = Array.isArray(deviceLogs) ? deviceLogs : [deviceLogs];
       if (dataArray.length === 0) return;
     
       const headers = Object.keys(dataArray[0]);
@@ -339,7 +328,7 @@ function Page() {
                         <th>Humidity</th>
                         <th>Temprture</th>
                         <th>Meta</th>
-                        <th scope="col">Action</th>
+                        <th  scope="col">Action</th>
                       </tr>
                     </thead>
                     <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
@@ -351,32 +340,24 @@ function Page() {
                             </span>
                           </td>
                         </tr>
-                      ) : filteredCustomers.length === 0 ? (
+                      ) : filteredLogs.length === 0 ? (
                         <tr>
                           <td colSpan="8" className="text-center">
                             No device log found. Add a new customer to get started.
                           </td>
                         </tr>
-                      ) : currentCustomers.map((customer, index) => (
-                        <tr key={customer._id}>
+                      ) : currentLogs.map((deviceLogs, index) => (
+                        <tr key={deviceLogs._id}>
                           <td><b>{index + 1}</b></td>
-                          <td>{customer.title}</td>
-                          <td>{customer.description}</td>
-                        
                           <td>
                             <span
                               className={`badge badge-warning`}>
-                              {customer.device_code}
+                              {deviceLogs.device_code}
                             </span>
                           </td>
-
-                          <td>
-                            <span
-                              className={`badge badge-warning`}>
-                              {customer.device_code}
-                            </span>
-                          </td>
-                        
+                          <td>{deviceLogs.humidity}</td>
+                          <td>{deviceLogs.temperature}</td>
+                          <td>{deviceLogs.meta['Name']}</td>
                           <td className="text-center">
                             <button className="btn btn-danger btn btn-sm ml-3" onClick={() => {
                               setCustomerToDelete(customer);
@@ -433,9 +414,9 @@ function Page() {
                 </div>
                 <form onSubmit={handleSubmit}>
                   <div className="modal-body pt-3">
-                    {useCustomerDeviceStore.getState().error && (
+                    {useDeviceLogsStore.getState().error && (
                       <div className="alert alert-danger">
-                        {useCustomerDeviceStore.getState().error}
+                        {useDeviceLogsStore.getState().error}
                       </div>
                     )}
 
@@ -450,10 +431,28 @@ function Page() {
                               className={`form-control form-control-lg ${formErrors.humidity ? 'is-invalid' : ''}`}
                               placeholder="Enter humidity"
                               value={formData.humidity}
-                              onChange={handleInputChanges}
+                              onChange={handleInputChange}
                             />
                             {formErrors.humidity && (
                               <div className="invalid-feedback">{formErrors.humidity}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-group mt-1">
+                          <label className="form-label"><span>Device Code</span></label>
+                          <div className="form-control-wrap">
+                            <input
+                              type="text"
+                              name="device_code"
+                              className={`form-control form-control-lg ${formErrors.device_code ? 'is-invalid' : ''}`}
+                              placeholder="Enter device_code"
+                              value={formData.device_code}
+                              onChange={handleInputChange}
+                            />
+                            {formErrors.device_code && (
+                              <div className="invalid-feedback">{formErrors.device_code}</div>
                             )}
                           </div>
                         </div>
@@ -464,14 +463,14 @@ function Page() {
                           <div className="form-control-wrap">
                             <input
                               type="text"
-                              name="temperture"
-                              className={`form-control form-control-lg ${formErrors.temperture ? 'is-invalid' : ''}`}
+                              name="temperature"
+                              className={`form-control form-control-lg ${formErrors.temperature ? 'is-invalid' : ''}`}
                               placeholder="Enter temperture"
-                              value={formData.temperture || ""}
-                              onChange={handleInputChanges}
+                              value={formData.temperature || ""}
+                              onChange={handleInputChange}
                             />
-                            {formErrors.temperture && (
-                              <div className="invalid-feedback">{formErrors.temperture}</div>
+                            {formErrors.temperature && (
+                              <div className="invalid-feedback">{formErrors.temperature}</div>
                             )}
                           </div>
                         </div>
@@ -485,8 +484,8 @@ function Page() {
                               name="meta"
                               className={`form-control form-control-lg ${formErrors.meta ? 'is-invalid' : ''}`}
                               placeholder="Enter description"
-                              value={formData.meta || ""}
-                              onChange={handleInputChanges}
+                              value={formData.meta}
+                              onChange={handleInputChange}
                             />
                             {formErrors.meta && (
                               <div className="invalid-feedback">{formErrors.meta}</div>
@@ -538,9 +537,9 @@ function Page() {
                 </div>
                 <form onSubmit={handleSubmit}>
                   <div className="modal-body pt-3">
-                    {useCustomerDeviceStore.getState().error && (
+                    {useDeviceLogsStore.getState().error && (
                       <div className="alert alert-danger">
-                        {useCustomerDeviceStore.getState().error}
+                        {useDeviceLogsStore.getState().error}
                       </div>
                     )}
 

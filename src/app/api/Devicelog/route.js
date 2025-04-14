@@ -2,173 +2,152 @@ import { NextResponse } from 'next/server';
 import { connectToMongo } from "../../mongodb_connection";
 import DeviceLog from '@/app/Models/DeviceLog';
 
-
 export async function POST(request) {
   try {
     // Connect to MongoDB
     await connectToMongo();
     
     const body = await request.json();
-    console.log("Received create request with body:", body);
+    console.log("📩 DeviceLog POST body:", body);
+
+    const {
+      device_code,
+      humidity,
+      temperature,
+      meta = {},
+    } = body;
 
     // Validate the request body
-    if (!body.device_code || !body.humidity || !body.temperature) {
+    if (!device_code) {
       return NextResponse.json(
-        { success: false, message: "all fields  is required" },
+        { success: false, message: "Device code is required" },
         { status: 400 }
       );
     }
 
-    // Check if the customer already exists by email
-    const existingCustomer = await DeviceLog.findOne({ device_code: body.device_code });
-    if (existingCustomer) {
-      return NextResponse.json(
-        { success: false, message: "Device with this Code already exists" },
-        { status: 409 }
-      );
+    // Validate that meta is a valid JSON object
+    let metaObject = meta;
+    if (typeof meta === 'string') {
+      try {
+        metaObject = JSON.parse(meta);
+      } catch (error) {
+        return NextResponse.json(
+          { success: false, message: "Meta data must be a valid JSON object" },
+          { status: 400 }
+        );
+      }
     }
 
-    // // Ensure devices is always an array
-    // let devicesList = [];
-    
-    // // Handle different formats of devices data
-    // if (Array.isArray(body.devices)) {
-    //   devicesList = body.devices; // Use devices as is if it's already an array
-    // } else if (typeof body.devices === 'string' && body.devices.trim() !== "") {
-    //   // If it's a string, just use it as a single device
-    //   devicesList = [body.devices];
-    // }
-
-    // // Add new field to the customer (newField can be any field)
-    // const newFieldValue = body.newField || 'default value'; // Set a default value if not provided
-
-    // // Log devices list to verify
-    // console.log("Devices List:", devicesList);
-    // console.log("Devices List Type:", typeof devicesList);
-    // console.log("Is Devices List Array:", Array.isArray(devicesList));
-    // console.log("Devices List Length:", devicesList.length);
-
-    // Create new customer with the new field
-    const customer = new DeviceLog({
-      device_code: body.device_code,
-      humidity: body.humidity,
-      temperature: body.temperature,
-      meta: body.meta,
+    // Create new device log
+    const deviceLog = new DeviceLog({
+      device_code,
+      humidity: Number(humidity) || 0,
+      temperature: Number(temperature) || 0,
+      meta: metaObject,
       created_at: new Date()
     });
 
-    // Save customer to the database
-    await customer.save();
+    // Save device log to the database
+    await deviceLog.save();
 
     return NextResponse.json(
-      { success: true, message: "Degvice log added successfully", customerId: customer._id },
+      { success: true, message: "Device log added successfully", data: deviceLog },
       { status: 201 }
     );
   } catch (error) {
-    console.error("❌ Detailed Error:", {
-      message: error.message,
-      stack: error.stack,
-      fullError: error
-    });
-
+    console.error("❌ POST error:", error);
     return NextResponse.json(
-      { success: false, message: "Internal Server Error" },
+      { success: false, message: "Internal Server Error", error: error.message },
       { status: 500 }
     );
   }
 }
 
 
-// GET API to Retrieve Customers
+// GET API to Retrieve Device Logs
 export async function GET(request) {
   try {
     await connectToMongo();
+    const url = new URL(request.url);
+    const device_code = url.searchParams.get('device_code');
+    
+    let query = {};
+    if (device_code) {
+      query.device_code = device_code;
+    }
 
-    // Retrieve all customers with populated devices
-    const customers = await DeviceLog.find({});
-    console.log("📌 DeviceLog Data:", customers);
+    // Retrieve device logs with optional filtering
+    const deviceLogs = await DeviceLog.find(query).sort({ created_at: -1 });
+    console.log("📌 DeviceLog Data:", deviceLogs.length, "records found");
 
     return NextResponse.json(
       { 
         success: true, 
-        message: "DeviceLog retrieved successfully",
-        customers: customers
+        message: "Device logs retrieved successfully",
+        data: deviceLogs
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Detailed Error:", {
-      message: error.message,
-      stack: error.stack,
-      fullError: error
-    });
-    console.error("Error retrieving DeviceLog:", error);
+    console.error("❌ GET error:", error);
     return NextResponse.json(
-      { success: false, message: "Internal Server Error" },
+      { success: false, message: "Internal Server Error", error: error.message },
       { status: 500 }
     );
   }
 }
 
 
-// DELETE API to Remove a Customer
+// DELETE API to Remove a Device Log
 export async function DELETE(request) {
   try {
-    // Extract the customer ID from the URL
     const url = new URL(request.url);
-    const customerId = url.searchParams.get('_id');
+    const id = url.searchParams.get('_id');
 
-    if (!customerId) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, message: "DeviceLog ID is required" },
+        { success: false, message: "Device log ID is required" },
         { status: 400 }
       );
     }
 
     await connectToMongo();
 
-    // Find and delete the customer by their ID
-    const deletedCustomer = await DeviceLog.findByIdAndDelete(customerId);
+    // Find and delete the device log by ID
+    const deletedDeviceLog = await DeviceLog.findByIdAndDelete(id);
 
-    if (!deletedCustomer) {
+    if (!deletedDeviceLog) {
       return NextResponse.json(
-        { success: false, message: "DeviceLog not found" },
+        { success: false, message: "Device log not found" },
         { status: 404 }
       );
     }
 
-    console.log(`DeviceLog with ID ${customerId} deleted successfully`);
+    console.log(`Device log with ID ${id} deleted successfully`);
 
     return NextResponse.json(
       {
         success: true,
-        message: "DeviceLog deleted successfully",
-        customerId: customerId,
+        message: "Device log deleted successfully",
+        id: id,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Detailed Error:", {
-      message: error.message,
-      stack: error.stack,
-      fullError: error
-    });
-    console.error("Error deleting customer:", error);
+    console.error("❌ DELETE error:", error);
     return NextResponse.json(
-      { success: false, message: "Internal Server Error" },
+      { success: false, message: "Internal Server Error", error: error.message },
       { status: 500 }
     );
   }
 }
 
-// PUT API to Update a Customer
+// PUT API to Update a Device Log
 export async function PUT(request) {
   try {
-    await connectToMongo(); // Ensure MongoDB is connected
-
+    await connectToMongo();
     const body = await request.json();
-    console.log("Received update request with body:", body);
-    console.log("Received rry list request with body:", body.devicesList);
+    console.log("📩 DeviceLog PUT body:", body);
 
     const {
       _id,
@@ -178,66 +157,62 @@ export async function PUT(request) {
       meta,
     } = body;
 
-
-    // ✅ Validate required fields
-    if (!_id ||!humidity || device_code ||!temperature) {
+    // Validate required fields
+    if (!_id) {
       return NextResponse.json(
-        { success: false, message: 'All required fields must be provided' },
+        { success: false, message: "Device log ID is required" },
         { status: 400 }
       );
     }
 
-    // ✅ Check for existing customer (excluding the current one)
-    const existingCustomer = await DeviceLog.findOne({
-      _id: { $ne: _id }
-    });
-
-    if (existingCustomer) {
-      return NextResponse.json(
-        { success: false, message: "Another Device log with this id already exists" },
-        { status: 409 }
-      );
+    // Validate that meta is a valid JSON object if provided
+    let metaObject = meta;
+    if (meta && typeof meta === 'string') {
+      try {
+        metaObject = JSON.parse(meta);
+      } catch (error) {
+        return NextResponse.json(
+          { success: false, message: "Meta data must be a valid JSON object" },
+          { status: 400 }
+        );
+      }
     }
 
-    // ✅ Build updated data
-    const updatedCustomerData = {
-      device_code,
-      humidity,
-      temperature,
-      meta,
-      updatedAt: new Date()
+    // Build updated data
+    const updateData = {
+      updated_at: new Date()
     };
 
-    console.log("Updating device log with ID:", _id);
-    console.log("Update data:", updatedCustomerData);
+    if (device_code) updateData.device_code = device_code;
+    if (humidity !== undefined) updateData.humidity = Number(humidity);
+    if (temperature !== undefined) updateData.temperature = Number(temperature);
+    if (meta !== undefined) updateData.meta = metaObject;
 
-    // ✅ Update the customer
-    const updatedCustomer = await DeviceLog.findByIdAndUpdate(
+    console.log("Updating device log with ID:", _id);
+    console.log("Update data:", updateData);
+
+    // Update the device log
+    const updatedDeviceLog = await DeviceLog.findByIdAndUpdate(
       _id,
-      updatedCustomerData,
+      updateData,
       { new: true }
     );
 
-    if (!updatedCustomer) {
+    if (!updatedDeviceLog) {
       return NextResponse.json(
-        { success: false, message: 'Device Log not found' },
+        { success: false, message: "Device log not found" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { success: true, message: 'Device Log updated successfully', customer: updatedCustomer },
+      { success: true, message: "Device log updated successfully", data: updatedDeviceLog },
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Detailed Error:", {
-      message: error.message,
-      stack: error.stack,
-      fullError: error
-    });
-
+    console.error("❌ PUT error:", error);
     return NextResponse.json(
-      { success: false, message: 'Internal Server Error' },
+      { success: false, message: "Internal Server Error", error: error.message },
       { status: 500 }
     );
   }

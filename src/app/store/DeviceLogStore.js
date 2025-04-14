@@ -1,278 +1,195 @@
-// stores/customerStore.js
+// stores/DeviceLogStore.js
 import { create } from 'zustand';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const useDeviceLogsStore = create((set) => ({
+const useDeviceLogsStore = create((set, get) => ({
   deviceLogs: [],
-//   devices: [],
   loading: false,
   error: null,
   formData: {
     device_code: '',
-    humidity: '',
-    temperature: '',
-    meta:{},
+    humidity: 0,
+    temperature: 0,
+    meta: {},
   },
   formErrors: {},
+
+  // Set form data and clear any errors for the updated field
   setFormData: (data) => set((state) => ({ 
     formData: { ...state.formData, ...data },
     formErrors: { ...state.formErrors, [Object.keys(data)[0]]: '' }
   })),
+
+  // Set meta data specifically (handles JSON objects)
+  setMetaData: (metaData) => {
+    try {
+      const parsedMeta = typeof metaData === 'string' ? JSON.parse(metaData) : metaData;
+      set((state) => ({
+        formData: { ...state.formData, meta: parsedMeta },
+        formErrors: { ...state.formErrors, meta: '' }
+      }));
+      return true;
+    } catch (error) {
+      console.error("Error parsing meta data:", error);
+      set((state) => ({
+        formErrors: { ...state.formErrors, meta: 'Invalid JSON format' }
+      }));
+      return false;
+    }
+  },
+
+  // Validate form before submission
   validateForm: () => {
     const errors = {};
-    const { formData } = useCustomerStore.getState();
-    
-    if (!formData.humidity.trim()) errors.humidity = 'humidity is required';
-    if (!formData.temperature.trim()) errors.temperature = 'temperature is required';
-    if (!formData.meta) errors.meta = 'meta is required';
-    
-    // No validation for devices - they're now optional
+    const { formData } = get();
+
+    if (!formData.device_code) errors.device_code = 'Device code is required';
+
+    const humidity = Number(formData.humidity);
+    const temperature = Number(formData.temperature);
+
+    if (isNaN(humidity)) errors.humidity = 'Humidity must be a number';
+    if (isNaN(temperature)) errors.temperature = 'Temperature must be a number';
 
     set({ formErrors: errors });
     return Object.keys(errors).length === 0;
   },
-  addCustomer: async (customerData = null) => {
+
+  // Add a new device log
+  addDeviceLog: async (logData = null) => {
     try {
       set({ loading: true });
-  
-      // Get formData from the store if no customerData is provided
-      const dataToUse = customerData || useDeviceLogsStore.getState().formData;
-      
-      // Ensure devices is an array
-      if (!dataToUse.devices || !Array.isArray(dataToUse.devices)) {
-        dataToUse.devices = [];
-      }
-      
-     // Construct the data to be sent
-     const dataToSend = {
-      device_code: dataToUse.device_code,
-      humidity: dataToUse.humidity,
-      temperature: dataToUse.temperature,
-      meta:dataToUse.meta,
-  };
-  
-      console.log("🚀 Data sent to API:", dataToSend);  // Check if 'devices' are present in the data
-  
-      // Send POST request to API to add customer
-      const response = await axios.post('/api/Customer', dataToSend);
-  
+
+      const dataToUse = logData || get().formData;
+      let metaToSend = typeof dataToUse.meta === 'string' ? JSON.parse(dataToUse.meta) : dataToUse.meta;
+
+      const dataToSend = {
+        device_code: dataToUse.device_code,
+        humidity: Number(dataToUse.humidity),
+        temperature: Number(dataToUse.temperature),
+        meta: metaToSend,
+      };
+
+      console.log("🚀 Data sent to API:", dataToSend);
+
+      const response = await axios.post('/api/DeviceLog', dataToSend);
+
       if (response.data?.success) {
-        console.log("🚀 Selected Devices:", dataToSend.devices);  // Log the devices being sent
-  
-        // Display success message
-        toast.success('Device Logs added successfully!');
-  
-        // Refetch customers list after successful operation
-        const updatedResponse = await axios.get('/api/DeviceLogs');
-        if (updatedResponse.data?.customers) {
-          set({
-            customers: updatedResponse.data.customers,
-            loading: false,
-            formData: {
-              device_code: '',
-              humidity: '',
-              temperature: '',
-              meta:{}
-            }
-          });
-        }
-  
+        toast.success('Device log added successfully!');
+        await fetchDeviceLogs();
         return true;
       } else {
-        // Handle error if API call fails
-        const errorMessage = response.data?.message || 'Failed to add device logs';
+        const errorMessage = response.data?.message || 'Failed to add device log';
         toast.error(errorMessage);
         set({ error: errorMessage, loading: false });
         return false;
       }
     } catch (error) {
-      // Catch any unexpected errors
-      const errorMessage = error.response?.data?.message || 'Failed to add device logs';
+      const errorMessage = error.response?.data?.message || 'Failed to add device log';
       toast.error(errorMessage);
-      console.error('Error adding device logs:', error);
+      console.error('Error adding device log:', error);
       set({ error: errorMessage, loading: false });
       return false;
     }
   },
-  
-  fetchCustomers: async () => {
+
+  // Fetch all device logs or filter by device code
+  fetchDeviceLogs: async (deviceCode = "pk-112232") => {
     try {
       set({ loading: true });
-      const response = await axios.get('/api/DeviceLogs');
-      // Extract customers array from the response
-      if (response.data && response.data.customers) {
-        set({ customers: response.data.customers, loading: false });
+
+      let url = '/api/DeviceLog';
+      if (deviceCode) {
+        url += `?device_code=${deviceCode}`;
+      }
+
+      const response = await axios.get(url);
+
+      if (response.data && response.data.data) {
+        set({ deviceLogs: response.data.data, loading: false });
       } else {
-        set({ customers: [], loading: false });
+        set({ deviceLogs: [], loading: false });
         console.error('Unexpected API response format:', response.data);
       }
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Failed to fetch DeviceLogs', loading: false });
-      console.error('Error fetching DeviceLogs:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to fetch device logs';
+      toast.error(errorMessage);
+      console.error('Error fetching device logs:', error);
+      set({ error: errorMessage, loading: false });
     }
   },
 
-  // Update customer
-  updateCustomer: async (customerId, updatedData) => {
+  // Update device log
+  updateDeviceLog: async (logId, updatedData) => {
     try {
       set({ loading: true, error: null });
-  
-      console.log(`🔄 Attempting to update DeviceLogs with ID: ${customerId}`);
+
+      console.log(`🔄 Attempting to update device log with ID: ${logId}`);
       console.log("📦 Raw update data:", updatedData);
-  
-      // Ensure devices is an array
-      if (!updatedData.devices || !Array.isArray(updatedData.devices)) {
-        updatedData.devices = [];
-      }
-      
-      // Prepare the final data to send
+
+      let metaToSend = typeof updatedData.meta === 'string' ? JSON.parse(updatedData.meta) : updatedData.meta;
+
       const finalData = {
         ...updatedData,
-        _id: customerId,
+        _id: logId,
+        meta: metaToSend,
+        humidity: Number(updatedData.humidity),
+        temperature: Number(updatedData.temperature)
       };
-  
+
       console.log("✅ Sending to API:", finalData);
-  
-      // Send request to middleware API route
-      const response = await axios.put('/api/DeviceLogs', finalData);
-  
-      console.log('📬 Update API response:', response.data);
-  
+
+      const response = await axios.put('/api/DeviceLog', finalData);
+
       if (response.data?.success) {
-        toast.success('✅ DeviceLogs updated successfully!');
-  
-        // Update state with the updated customer
-        set((state) => ({
-          customers: state.deviceLogs.map((customer) =>
-            customer._id === customerId ? response.data.customer : customer
-          ),
-          loading: false,
-          formData: {
-            device_code: '',
-              humidity: '',
-              temperature: '',
-              meta:{}
-          }
-        }));
-  
-        console.log(`🎉 DeviceLogs with ID ${customerId} updated in store.`);
+        toast.success('✅ Device log updated successfully!');
+        await fetchDeviceLogs();
         return true;
       } else {
-        const errorMessage = response.data?.message || 'Failed to update DeviceLogs';
+        const errorMessage = response.data?.message || 'Failed to update device log';
         toast.error(`⚠️ ${errorMessage}`);
         console.error('❌ API response error:', response.data);
         set({ loading: false, error: errorMessage });
         return false;
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to update DeviceLogs';
+      const errorMessage = error.response?.data?.message || 'Failed to update device log';
       toast.error(`❌ ${errorMessage}`);
       console.error('🚨 Exception during update:', error);
       set({ loading: false, error: errorMessage });
       return false;
     }
   },
-  
-  
 
-  // Delete customer
-  deleteCustomer: async (customerId) => {
+  // Delete device log
+  deleteDeviceLog: async (logId) => {
     try {
       set({ loading: true, error: null });
-      console.log(`Attempting to delete customer with ID: ${customerId}`);
+      console.log(`Attempting to delete device log with ID: ${logId}`);
 
-      const response = await axios.delete(`/api/DeviceLogs?_id=${customerId}`);
+      const response = await axios.delete(`/api/DeviceLog?_id=${logId}`);
       console.log('Delete API response:', response.data);
 
       if (response.data && response.data.success) {
-        // Show success toast
-        toast.success('DeviceLogs deleted successfully!');
-
-        // If successful, remove the customer from the state
-        set((state) => ({
-          customers: state.customers.filter((customer) => customer._id !== customerId),
-          loading: false,
-        }));
-        console.log(`DeviceLogs with ID ${customerId} deleted successfully`);
+        toast.success('Device log deleted successfully!');
+        await fetchDeviceLogs();
         return true;
       } else {
-        const errorMessage = response.data?.message || 'Failed to delete DeviceLogs';
+        const errorMessage = response.data?.message || 'Failed to delete device log';
         toast.error(errorMessage);
-        set({
-          loading: false,
-          error: errorMessage
-        });
-        console.error('Failed to delete DeviceLogs:', response.data?.message);
+        set({ loading: false, error: errorMessage });
+        console.error('Failed to delete device log:', response.data?.message);
         return false;
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to delete DeviceLogs';
+      const errorMessage = error.response?.data?.message || 'Failed to delete device log';
       toast.error(errorMessage);
-      console.error('Error deleting DeviceLogs:', error);
-      set({
-        loading: false,
-        error: errorMessage
-      });
+      console.error('Error deleting device log:', error);
+      set({ loading: false, error: errorMessage });
       return false;
     }
   },
-
-   // Edit customer function
-   editCustomer: async (customerId, updatedData) => {
-    try {
-      set({ loading: true });
-  
-      // Send a PUT request to update the customer
-      const response = await axios.put('/api/DeviceLogs', { 
-        customerId, 
-        ...updatedData,
-        
-      });
-  
-      if (response.data.success) {
-        // If the update is successful, update the customer in the state
-        set((state) => ({
-          customers: state.DeviceLogs.map((customer) =>
-            customer._id === customerId ? { ...customer, ...updatedData } : customer
-          ),
-          loading: false,
-        }));
-        console.log(`DeviceLogs with ID ${customerId} updated successfully`);
-      } else {
-        // If the response indicates failure, stop loading
-        set({ loading: false });
-        console.error('Failed to update DeviceLogs:', response.data.message);
-      }
-    } catch (error) {
-      // Handle errors and stop loading
-      set({ loading: false, error: error.response?.data?.message || 'Failed to update DeviceLogs' });
-      console.error('Error updating DeviceLogs:', error);
-    }
-  },
-
-//   fetchDevicesList: async () => {
-//     try {
-//       set({ loading: true });
-//       const response = await axios.get('/api/Devices');
-//       console.log("Fetch devices response:", response.data);
-      
-//       // Extract devices array from the response
-//       if (response.data && response.data.devices) {
-//         set({ devices: response.data.devices, loading: false });
-//       } else {
-//         set({ devices: [], loading: false });
-//         console.error('Unexpected API response format:', response.data);
-//       }
-//     } catch (error) {
-//       set({ error: error.response?.data?.message || 'Failed to fetch devices', loading: false });
-//       console.error('Error fetching devices:', error);
-//       console.error('Error details:', error.response?.data);
-//     }
-//   },
-  
-
 }));
 
- 
 export default useDeviceLogsStore;
