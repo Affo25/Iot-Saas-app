@@ -123,17 +123,7 @@ function Page() {
       device_code: '',
       device_serial_number: '',
       customer_id: '',
-      status: 0,
-      m1: "",
-      m2: "",
-      inp1: "",
-      inp2: "",
-      inp3: "",
-      inp4: "",
-      outp1: "",
-      outp2: "",
-      outp3: "",
-      outp4: "",
+      status: '',
     });
 
     // Reset formsData state as well
@@ -147,7 +137,7 @@ function Page() {
   const handleInputChanges = (e) => {
     const { name, value } = e.target;
     setFormData({ [name]: value });
-  }; 
+  };
 
   const handleInputChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -186,18 +176,8 @@ function Page() {
       description: customerDevice.description || '',
       device_code: customerDevice.device_code || '',
       device_serial_number: customerDevice.device_serial_number || '',
-      status: customerDevice.status !== undefined ? customerDevice.status : 0,
-      customer_id: customerDevice.customer_id || customer?._id || '',
-      m1: customerDevice.m1 || '',
-      m2: customerDevice.m2 || '',
-      inp1: customerDevice.inp1 || '',
-      inp2: customerDevice.inp2 || '',
-      inp3: customerDevice.inp3 || '',
-      inp4: customerDevice.inp4 || '',
-      outp1: customerDevice.outp1 || '',
-      outp2: customerDevice.outp2 || '',
-      outp3: customerDevice.outp3 || '',
-      outp4: customerDevice.outp4 || ''
+      status: customerDevice.status || '',
+      customer_id: customerDevice.customer_id || (customer?._id || '')
     });
 
     // Update formsData for the checkboxes
@@ -234,9 +214,8 @@ function Page() {
         device_code: selectedDevices[0] || "",
         customer_id: customer?._id || "",
         description: formData.description || "",
-        status: Number(formData.status) || 0,
       };
-       console.log("Updated Form Data to Submit:", updatedFormData);
+
       if (isEditMode && currentCustomerId) {
         console.log("Updating customer with ID:", currentCustomerId);
         console.log("Updated Form Data to Submit:", updatedFormData);
@@ -281,9 +260,9 @@ function Page() {
       <div className="nk-block-head nk-block-head-sm p-0">
         <div className="nk-block-between">
           <div className="nk-block-head-content">
-            <h3 className="nk-block-title page-title">Customers Device Management</h3>
+            <h3 className="nk-block-title page-title">Device Logs Management</h3>
             <div className="nk-block-des text-soft">
-              <p>Manage and keep track of all your Customers Devices</p>
+              <p>Manage and keep track of all your Devices Logs</p>
             </div>
           </div>
           <div className="nk-block-head-content">
@@ -316,7 +295,7 @@ function Page() {
                   <div className="card-title-group">
                     <div className="card-title">
                       <h5 className="title">
-                        Total Customers Devices
+                        Total Devices Logs
                         <span className="badge badge-info ml-2">
                           {filteredCustomers.length}
                         </span>
@@ -340,16 +319,10 @@ function Page() {
                     <thead style={{ fontSize: "14px", fontWeight: 'bold' }} className="tb-tnx-head " id="datatable-default_wrapper">
                       <tr>
                         <th scope="col">#</th>
-                        <th>Title</th>
-                        <th>Description</th>
                         <th>Device Code</th>
-                        <th>Customer ID</th>
-                        <th>Inputs</th>
-                        <th>Outputs</th>
-                        <th>M1</th>
-                        <th>M2</th>
-                        <th>Device Serial No</th>
-                        <th>Status</th>
+                        <th>Humidity</th>
+                        <th>Temprture</th>
+                        <th>Meta</th>
                         <th scope="col">Action</th>
                       </tr>
                     </thead>
@@ -365,7 +338,7 @@ function Page() {
                       ) : filteredCustomers.length === 0 ? (
                         <tr>
                           <td colSpan="8" className="text-center">
-                            No customers device found. Add a new customer to get started.
+                            No device log found. Add a new customer to get started.
                           </td>
                         </tr>
                       ) : currentCustomers.map((customer, index) => (
@@ -380,21 +353,11 @@ function Page() {
                               {customer.device_code}
                             </span>
                           </td>
-                          <td>{customer.customer_id}</td>
-                          <td>{customer.inp1},{customer.inp2},{customer.inp3},{customer.inp4}</td>
-                          <td>{customer.outp1},{customer.outp2},{customer.outp3},{customer.outp4}</td>
-                          <td>{customer.m1}</td>
-                          <td>{customer.m2}</td>
+
                           <td>
                             <span
-                              className={`badge badge-success`}>
-                              {customer.device_serial_number}
-                            </span>
-                          </td>
-                          <td>
-                            <span
-                              className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'danger' : 'danger'}`}>
-                              {customer.status}
+                              className={`badge badge-warning`}>
+                              {customer.device_code}
                             </span>
                           </td>
                         
@@ -443,10 +406,10 @@ function Page() {
               <div className="modal-content">
                 <div className="modal-header bg-primary">
                   <h5 className="modal-title text-white">
-                    <span>{isEditMode ? 'Edit Customer Device Detail' : 'Add Customer Device Detail'}</span>
+                    <span>{isEditMode ? 'Edit Device Logs Detail' : 'Add Device Logs Detail'}</span>
                   </h5>
                   <h5 style={{ marginLeft: "20px" }} className="modal-title text-white">
-                    <span className="badge badge-danger">{customer.full_name.toUpperCase()}</span>
+                    <span className="badge badge-danger"></span>
                   </h5>
                   <button style={{ color: "#fff" }} className="close" onClick={closeModal} aria-label="Close">
                     <em className="icon ni ni-cross-sm"></em>
@@ -461,288 +424,63 @@ function Page() {
                     )}
 
                     <div className="row">
-                      <div className="col-md-4">
+                      <div className="col-md-6">
                         <div className="form-group mt-1">
-                          <label className="form-label"><span>Title</span></label>
+                          <label className="form-label"><span>Humidity</span></label>
                           <div className="form-control-wrap">
                             <input
                               type="text"
-                              name="title"
-                              className={`form-control form-control-lg ${formErrors.title ? 'is-invalid' : ''}`}
-                              placeholder="Enter Title"
-                              value={formData.title}
+                              name="humidity"
+                              className={`form-control form-control-lg ${formErrors.humidity ? 'is-invalid' : ''}`}
+                              placeholder="Enter humidity"
+                              value={formData.humidity}
                               onChange={handleInputChanges}
                             />
-                            {formErrors.title && (
-                              <div className="invalid-feedback">{formErrors.title}</div>
+                            {formErrors.humidity && (
+                              <div className="invalid-feedback">{formErrors.humidity}</div>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-4">
+                      <div className="col-md-6">
                         <div className="form-group mt-1">
-                          <label className="form-label"><span>Device Serial Number</span></label>
+                          <label className="form-label"><span>Temperature</span></label>
                           <div className="form-control-wrap">
                             <input
                               type="text"
-                              name="device_serial_number"
-                              className={`form-control form-control-lg ${formErrors.device_serial_number ? 'is-invalid' : ''}`}
-                              placeholder="Enter Device Serial Number"
-                              value={formData.device_serial_number || ""}
+                              name="temperture"
+                              className={`form-control form-control-lg ${formErrors.temperture ? 'is-invalid' : ''}`}
+                              placeholder="Enter temperture"
+                              value={formData.temperture || ""}
                               onChange={handleInputChanges}
                             />
-                            {formErrors.serial_number && (
-                              <div className="invalid-feedback">{formErrors.serial_number}</div>
+                            {formErrors.temperture && (
+                              <div className="invalid-feedback">{formErrors.temperture}</div>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-4">
+                      <div className="col-md-6">
                         <div className="form-group mt-1">
-                          <label className="form-label"><span>M1</span></label>
+                          <label className="form-label"><span>Meta</span></label>
                           <div className="form-control-wrap">
-                            <input
+                            <textarea
                               type="text"
-                              name="m1"
-                              className={`form-control form-control-lg ${formErrors.m1 ? 'is-invalid' : ''}`}
-                              placeholder="Enter M1"
-                              value={formData.m1 || ""}
+                              name="meta"
+                              className={`form-control form-control-lg ${formErrors.meta ? 'is-invalid' : ''}`}
+                              placeholder="Enter description"
+                              value={formData.meta || ""}
                               onChange={handleInputChanges}
                             />
-                            {formErrors.m1 && (
-                              <div className="invalid-feedback">{formErrors.m1}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>M2</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="m2"
-                              className={`form-control form-control-lg ${formErrors.m2 ? 'is-invalid' : ''}`}
-                              placeholder="Enter M2"
-                              value={formData.m2 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.m2 && (
-                              <div className="invalid-feedback">{formErrors.m2}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Input1</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="inp1"
-                              className={`form-control form-control-lg ${formErrors.inp1 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Input1"
-                              value={formData.inp1 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.inp1 && (
-                              <div className="invalid-feedback">{formErrors.inp1}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Input2</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="inp2"
-                              className={`form-control form-control-lg ${formErrors.inp2 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Input2"
-                              value={formData.inp2 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.inp2 && (
-                              <div className="invalid-feedback">{formErrors.inp2}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Input3</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="inp3"
-                              className={`form-control form-control-lg ${formErrors.inp3 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Input3"
-                              value={formData.inp3 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.inp3 && (
-                              <div className="invalid-feedback">{formErrors.inp3}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Input4</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="inp4"
-                              className={`form-control form-control-lg ${formErrors.inp4 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Input4"
-                              value={formData.inp4 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.inp4 && (
-                              <div className="invalid-feedback">{formErrors.inp4}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Output1</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="outp1"
-                              className={`form-control form-control-lg ${formErrors.outp1 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Output1"
-                              value={formData.outp1 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.outp1 && (
-                              <div className="invalid-feedback">{formErrors.outp1}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Output2</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="outp2"
-                              className={`form-control form-control-lg ${formErrors.outp2 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Output2"
-                              value={formData.outp2 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.outp2 && (
-                              <div className="invalid-feedback">{formErrors.outp2}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Output3</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="outp3"
-                              className={`form-control form-control-lg ${formErrors.outp3 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Output3"
-                              value={formData.outp3 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.outp3 && (
-                              <div className="invalid-feedback">{formErrors.outp3}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Output4</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="outp4"
-                              className={`form-control form-control-lg ${formErrors.outp4 ? 'is-invalid' : ''}`}
-                              placeholder="Enter Output4"
-                              value={formData.outp4 || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.outp4 && (
-                              <div className="invalid-feedback">{formErrors.outp4}</div>
+                            {formErrors.meta && (
+                              <div className="invalid-feedback">{formErrors.meta}</div>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Status</span></label>
-                          <div className="form-control-wrap">
-                            <select
-                              name="status"
-                              className={`form-control form-control-lg ${formErrors.status ? 'is-invalid' : ''}`}
-                              value={formData.status || ""}
-                              onChange={handleInputChanges}
-                            >
-                              <option value="">Select Status</option>
-                              <option value="0">0</option>
-                              <option value="1">1</option>
-                            </select>
-                            {formErrors.status && (
-                              <div className="invalid-feedback">{formErrors.status}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Description</span></label>
-                          <div className="form-control-wrap">
-                            <textarea
-                              type="text"
-                              name="description"
-                              className={`form-control form-control-lg ${formErrors.description ? 'is-invalid' : ''}`}
-                              placeholder="Enter description"
-                              value={formData.description || ""}
-                              onChange={handleInputChanges}
-                            />
-                            {formErrors.description && (
-                              <div className="invalid-feedback">{formErrors.description}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
                     </div>
-                    <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Select Devices</span></label>
-                          <div className="form-control-wrap">
-                            {/* Dynamically render device checkboxes */}
-                            {customer.devices.map((device, index) => (
-                              <div key={index} className="form-check"> {/* Use index as key since the devices are strings */}
-                                <input
-                                  type="checkbox"
-                                  name="selectedDevices"
-                                  value={device}
-                                  className={`form-check-input ${formErrors.selectedDevices ? 'is-invalid' : ''}`}
-                                  checked={(formsData.selectedDevices || []).includes(device)}
-                                  onChange={handleInputChange}
-                                />
-                                <label className="form-check-label">
-                                  {device} {/* Display device name */}
-                                </label>
-                              </div>
-                            ))}
-                            {formErrors.selectedDevices && (
-                              <div className="invalid-feedback">{formErrors.selectedDevices}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+
                     <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>
                       <div className="col-md-9"></div>
                       <div className="col-md-3 text-right pt-2">

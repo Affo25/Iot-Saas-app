@@ -15,7 +15,17 @@ const useCustomerDeviceStore = create((set) => ({
     description: '',
     customer_id: '',
     device_code: "",
-    status: '',
+    status: 0,
+    m1 : '',
+    m2 : '',
+    inp1 : '',
+    inp2 : '',
+    inp3 : '',
+    inp4 : '',
+    outp1 : '',
+    outp2 : '',
+    outp3 : '',
+    outp4 : '',
   },
   formErrors: {},
   setFormData: (data) => set((state) => ({ 
@@ -34,7 +44,17 @@ const useCustomerDeviceStore = create((set) => ({
     if (!formData.description.trim()) errors.description = 'description is required';
     if (!formData.device_serial_number) errors.device_serial_number = 'device_serial_number is required';
     if (!formData.status) errors.status = 'Status is required';
-    
+    if (!formData.m1) errors.m1 = 'm1 is required';
+    if (!formData.m2) errors.m2 = 'm2 is required';
+    if (!formData.inp1) errors.inp1 = 'Input1 is required';
+    if (!formData.inp2) errors.inp2 = 'Input2 is required';
+    if (!formData.inp3) errors.inp3 = 'Input3 is required';
+    if (!formData.inp4) errors.inp4 = 'Input4 is required';
+    if (!formData.outp1) errors.outp1 = 'Output1 is required';
+    if (!formData.outp2) errors.outp2 = 'Output2 is required';
+    if (!formData.outp3) errors.outp3 = 'Output3 is required';
+    if (!formData.outp4) errors.outp4 = 'Output4 is required';
+
     // No validation for devices - they're now optional
 
     set({ formErrors: errors });
@@ -60,6 +80,16 @@ const useCustomerDeviceStore = create((set) => ({
       device_serial_number: dataToUse.device_serial_number,
       customer_id: dataToUse.customer_id,
       status: dataToUse.status,
+      m1: dataToUse.m1 || "",
+      m2: dataToUse.m2 || "",
+      inp1: dataToUse.inp1 || "",
+      inp2: dataToUse.inp2 || "",
+      inp3: dataToUse.inp3 || "",
+      inp4: dataToUse.inp4 || "",
+      outp1: dataToUse.outp1 || "",
+      outp2: dataToUse.outp2 || "",
+      outp3: dataToUse.outp3 || "",
+      outp4: dataToUse.outp4 || "",
   };
   
       console.log("🚀 Data sent to API:", dataToSend);  // Check if 'devices' are present in the data
@@ -85,7 +115,17 @@ const useCustomerDeviceStore = create((set) => ({
               device_code: '',
               device_serial_number: '',
               customer_id: "",
-              status: '',
+              status: 0,
+              m1: "",
+              m2: "",
+              inp1: "",
+              inp2: "",
+              inp3: "",
+              inp4: "",
+              outp1: "",
+              outp2: "",
+              outp3: "",
+              outp4: "",
             
             }
           });
@@ -167,7 +207,17 @@ const useCustomerDeviceStore = create((set) => ({
             device_serial_number: '',
             device_code: '',
             customer_id: "",
-            status: '',
+            status: 0,
+            m1: "",
+            m2: "",
+            inp1: "",
+            inp2: "",
+            inp3: "",
+            inp4: "",
+            outp1: "",
+            outp2: "",
+            outp3: "",
+            outp4: "",
           }
         }));
   

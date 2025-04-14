@@ -1,8 +1,7 @@
-// app/api/customers-device/route.js or customers-device/route.js
-
 import { NextResponse } from 'next/server';
 import { connectToMongo } from '../../mongodb_connection';
 import CustomersDevice from '@/app/Models/CustomersDevice';
+const { Int32 } = require('bson');
 
 
 // ✅ CREATE Device
@@ -17,8 +16,18 @@ export async function POST(request) {
       device_serial_number,
       device_code,
       customer_id,
-      status = "Active",
-      description = ''
+      status = 0,
+      description = '',
+      m1 = '',
+      m2 = '',
+      inp1 = '',
+      inp2 = '',
+      inp3 = '',
+      inp4 = '',
+      outp1 = '',
+      outp2 = '',
+      outp3 = '',
+      outp4 = '',
     } = body;
 
     if (!title || !device_serial_number || !device_code || !customer_id) {
@@ -33,8 +42,18 @@ export async function POST(request) {
       device_serial_number,
       device_code,
       customer_id,
-      status,
-      description
+      status : new Int32(parseInt(body.status)),
+      description,
+      m1,
+      m2,
+      inp1,
+      inp2,
+      inp3,
+      inp4,
+      outp1,
+      outp2,
+      outp3,
+      outp4,
     });
 
     await newDevice.save();
@@ -52,7 +71,6 @@ export async function POST(request) {
     );
   }
 }
-
 
 // ✅ READ Devices
 export async function GET() {
@@ -72,7 +90,6 @@ export async function GET() {
     );
   }
 }
-
 
 // ✅ DELETE Device
 export async function DELETE(request) {
@@ -111,7 +128,6 @@ export async function DELETE(request) {
   }
 }
 
-
 // ✅ UPDATE Device
 export async function PUT(request) {
   try {
@@ -125,7 +141,17 @@ export async function PUT(request) {
       device_code,
       customer_id,
       status,
-      description
+      description,
+      m1,
+      m2,
+      inp1,
+      inp2,
+      inp3,
+      inp4,
+      outp1,
+      outp2,
+      outp3,
+      outp4
     } = body;
 
     if (!_id || !title || !device_serial_number || !device_code || !customer_id) {
@@ -142,8 +168,19 @@ export async function PUT(request) {
         device_serial_number,
         device_code,
         customer_id,
-        status,
-        description
+        status: new Int32(parseInt(status)),
+        description,
+        m1,
+        m2,
+        inp1,
+        inp2,
+        inp3,
+        inp4,
+        outp1,
+        outp2,
+        outp3,
+        outp4,
+        updatedAt: Date.now(),
       },
       { new: true }
     );
@@ -168,6 +205,3 @@ export async function PUT(request) {
     );
   }
 }
-
-
-
