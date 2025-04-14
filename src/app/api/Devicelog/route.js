@@ -12,9 +12,9 @@ export async function POST(request) {
     console.log("Received create request with body:", body);
 
     // Validate the request body
-    if (!body.email) {
+    if (!body.device_code || !body.humidity || !body.temperature) {
       return NextResponse.json(
-        { success: false, message: "Email is required" },
+        { success: false, message: "all fields  is required" },
         { status: 400 }
       );
     }
@@ -180,7 +180,7 @@ export async function PUT(request) {
 
 
     // ✅ Validate required fields
-    if (!_id ||!humidity || device_code ||!temperature ||!meta) {
+    if (!_id ||!humidity || device_code ||!temperature) {
       return NextResponse.json(
         { success: false, message: 'All required fields must be provided' },
         { status: 400 }
