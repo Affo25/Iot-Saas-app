@@ -5,7 +5,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import useCustomerStore from '../../store/customerStore';
 import ReactPaginate from "react-paginate";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import useDeviceStore from "@/app/store/DeviceStore";
 function Page() {
   const {
@@ -170,13 +171,34 @@ const currentCustomers = Array.isArray(filteredCustomers) && filteredCustomers.l
     }
   };
 
-  // download data as excel sheet
-  const exportDtoExcel = () => {
-    var wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(customers);
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    XLSX.writeFile(wb, "customers.xlsx");
-  } 
+  // handleInputChanges functionality has been merged into handleInputChange
+ 
+    const exportJsonToExcel = async (jsonData, fileName = 'data.xlsx') => {
+     const workbook = new ExcelJS.Workbook();
+     const worksheet = workbook.addWorksheet('Sheet 1');
+   
+     const dataArray = Array.isArray(devices) ? devices : [devices];
+     if (dataArray.length === 0) return;
+   
+     const headers = Object.keys(dataArray[0]);
+     worksheet.columns = headers.map((key) => ({
+       header: key.toUpperCase(),
+       key,
+       width: 20,
+     }));
+   
+     dataArray.forEach((row) => worksheet.addRow(row));
+   
+     const buffer = await workbook.xlsx.writeBuffer();
+     const blob = new Blob([buffer], {
+       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+     });
+   
+     saveAs(blob, fileName);
+   };
+
+
+   
 
   return (
     <div className="nk-content-body">
@@ -194,7 +216,7 @@ const currentCustomers = Array.isArray(filteredCustomers) && filteredCustomers.l
                 <button className="btn btn-success ml-1">
                   <span>Upload From Excel</span>
                 </button>
-                <button className="btn btn-danger ml-1" onClick={exportDtoExcel}>
+                <button className="btn btn-danger ml-1" onClick={exportJsonToExcel}>
                   <span>Download Excel</span>
                 </button>
                 <button
