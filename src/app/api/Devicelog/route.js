@@ -20,10 +20,10 @@ export async function POST(request) {
     }
 
     // Check if the customer already exists by email
-    const existingCustomer = await DeviceLog.findOne({ email: body.email });
+    const existingCustomer = await DeviceLog.findOne({ device_code: body.device_code });
     if (existingCustomer) {
       return NextResponse.json(
-        { success: false, message: "Customer with this email already exists" },
+        { success: false, message: "Device with this Code already exists" },
         { status: 409 }
       );
     }
