@@ -13,7 +13,7 @@ function Sidebar() {
     { menu_url: '/', menu_title: 'Dashboard' },
     { menu_url: '/Dashboard/Customers', menu_title: 'Customers' },
     { menu_url: '/Dashboard/Device', menu_title: 'Devices' },
-    { menu_url: '/Dashboard/DeviceLogs', menu_title: 'Device Logs' },
+    { menu_url: '/Dashboard/DeviceLog', menu_title: 'Device Logs' },
   ];
 
   const customerMenus = [
