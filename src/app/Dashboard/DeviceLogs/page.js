@@ -219,7 +219,7 @@ function Page() {
       if (success) {
         console.log("🎉 Operation successful");
         closeModal();
-        fetchDeviceLogs(deviceCodeFilter || null);
+        fetchDeviceLogs();
       } else {
         console.error("⚠️ Operation failed");
       }
@@ -302,7 +302,7 @@ function Page() {
                       <h5 className="title">
                         Total Devices Logs
                         <span className="badge badge-info ml-2">
-                          {filteredCustomers.length}
+                          {deviceLogs.length}
                         </span>
                       </h5>
                     </div>
@@ -357,15 +357,15 @@ function Page() {
                           </td>
                           <td>{deviceLogs.humidity}</td>
                           <td>{deviceLogs.temperature}</td>
-                          <td>{deviceLogs.meta['Name']}</td>
+                          <td>{deviceLogs.meta['Device_code']}{deviceLogs.meta['room_temp']}</td>
                           <td className="text-center">
                             <button className="btn btn-danger btn btn-sm ml-3" onClick={() => {
-                              setCustomerToDelete(customer);
+                              setCustomerToDelete(deviceLogs);
                               setIsDeleteModalOpen(true);
                             }}>
                               <span>Delete</span>
                             </button>
-                            <button className="btn btn-primary btn btn-sm ml-1" onClick={() => handleEdit(customer)}>
+                            <button className="btn btn-primary btn btn-sm ml-1" onClick={() => handleEdit(deviceLogs)}>
                               <span>Edit</span>
                             </button>
                           </td>

@@ -94,18 +94,42 @@ const useDeviceLogsStore = create((set, get) => ({
     }
   },
 
-  // Fetch all device logs or filter by device code
-  fetchDeviceLogs: async (deviceCode = "pk-112232") => {
+  // // Fetch all device logs or filter by device code
+  // fetchDeviceLogs: async (deviceCode = "pk-112232") => {
+  //   try {
+  //     set({ loading: true });
+
+  //     let url = '/api/DeviceLog';
+  //     if (deviceCode) {
+  //       url += `?device_code=${deviceCode}`;
+  //     }
+
+  //     const response = await axios.get(url);
+
+  //     if (response.data && response.data.data) {
+  //       set({ deviceLogs: response.data.data, loading: false });
+  //     } else {
+  //       set({ deviceLogs: [], loading: false });
+  //       console.error('Unexpected API response format:', response.data);
+  //     }
+  //   } catch (error) {
+  //     const errorMessage = error.response?.data?.message || 'Failed to fetch device logs';
+  //     toast.error(errorMessage);
+  //     console.error('Error fetching device logs:', error);
+  //     set({ error: errorMessage, loading: false });
+  //   }
+  // },
+
+
+  
+  fetchDeviceLogs: async () => {
     try {
       set({ loading: true });
-
-      let url = '/api/DeviceLog';
-      if (deviceCode) {
-        url += `?device_code=${deviceCode}`;
-      }
-
+  
+      const url = '/api/DeviceLog'; // no query params
+  
       const response = await axios.get(url);
-
+  
       if (response.data && response.data.data) {
         set({ deviceLogs: response.data.data, loading: false });
       } else {

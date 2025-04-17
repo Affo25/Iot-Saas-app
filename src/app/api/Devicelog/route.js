@@ -64,26 +64,18 @@ export async function POST(request) {
 }
 
 
-// GET API to Retrieve Device Logs
 export async function GET(request) {
   try {
     await connectToMongo();
-    const url = new URL(request.url);
-    const device_code = url.searchParams.get('device_code');
-    
-    let query = {};
-    if (device_code) {
-      query.device_code = device_code;
-    }
 
-    // Retrieve device logs with optional filtering
-    const deviceLogs = await DeviceLog.find(query).sort({ created_at: -1 });
+    // Fetch all device logs from the database, sorted by created_at descending
+    const deviceLogs = await DeviceLog.find({}).sort({ created_at: -1 });
     console.log("📌 DeviceLog Data:", deviceLogs.length, "records found");
 
     return NextResponse.json(
       { 
         success: true, 
-        message: "Device logs retrieved successfully",
+        message: "All device logs retrieved successfully",
         data: deviceLogs
       },
       { status: 200 }
@@ -96,6 +88,39 @@ export async function GET(request) {
     );
   }
 }
+
+//GET API to Retrieve Device Logs
+// export async function GET(request) {
+//   try {
+//     await connectToMongo();
+//     const url = new URL(request.url);
+//     const device_code = url.searchParams.get('device_code');
+    
+//     let query = {};
+//     if (device_code) {
+//       query.device_code = device_code;
+//     }
+
+//     // Retrieve device logs with optional filtering
+//     const deviceLogs = await DeviceLog.find(query).sort({ created_at: -1 });
+//     console.log("📌 DeviceLog Data:", deviceLogs.length, "records found");
+
+//     return NextResponse.json(
+//       { 
+//         success: true, 
+//         message: "Device logs retrieved successfully",
+//         data: deviceLogs
+//       },
+//       { status: 200 }
+//     );
+//   } catch (error) {
+//     console.error("❌ GET error:", error);
+//     return NextResponse.json(
+//       { success: false, message: "Internal Server Error", error: error.message },
+//       { status: 500 }
+//     );
+//   }
+// }
 
 
 // DELETE API to Remove a Device Log
