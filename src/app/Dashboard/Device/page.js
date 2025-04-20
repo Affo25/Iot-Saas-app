@@ -7,7 +7,7 @@ import useCustomerStore from '../../store/customerStore';
 import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import useDeviceStore from "@/app/store/DeviceStore";
+import useDeviceStore from "../../store/DeviceStore";
 function Page() {
   const {
     devices,

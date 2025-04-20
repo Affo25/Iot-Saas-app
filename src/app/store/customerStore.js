@@ -44,6 +44,47 @@ const useCustomerStore = create((set) => ({
     set({ formErrors: errors });
     return Object.keys(errors).length === 0;
   },
+
+
+  addSystemUser: async ( systemUserCredentials = { email: '', password: '' }) => {
+    try {
+      // Don't set loading true here as it's already set in addCustomer
+      
+     // Construct the data to be sent
+     const dataToSend = {
+      email: systemUserCredentials.email,
+      password: systemUserCredentials.password,
+      userRole: "Customer"
+  };
+  
+      console.log("🚀 Data sent to System User API:", dataToSend);
+  
+      // Send POST request to API to add system user
+      const response = await axios.post('/api/SystemUsers', dataToSend);
+  
+      if (response.data?.success) {
+        console.log("🚀 System user response:", response.data);
+  
+        // Display success message
+        toast.success('System user added successfully!');
+        return true;
+      } else {
+        // Handle error if API call fails
+        const errorMessage = response.data?.message || 'Failed to add system user';
+        toast.error(errorMessage);
+        set({ error: errorMessage });
+        return false;
+      }
+    } catch (error) {
+      // Catch any unexpected errors
+      const errorMessage = error.response?.data?.message || 'Failed to add system user';
+      toast.error(errorMessage);
+      console.error('Error adding system user:', error);
+      set({ error: errorMessage });
+      return false;
+    }
+  },
+
   addCustomer: async (customerData = null) => {
     try {
       set({ loading: true });
@@ -75,10 +116,22 @@ const useCustomerStore = create((set) => ({
   
       if (response.data?.success) {
         console.log("🚀 Selected Devices:", dataToSend.devices);  // Log the devices being sent
-  
+        const systemUserPayload = {
+          email: dataToUse.email,
+          password: dataToUse.password,
+        };
+
         // Display success message
         toast.success('Customer added successfully!');
-  
+        
+        // 1. Create system user (SystemUser table)
+        const systemUserResult = await useCustomerStore.getState().addSystemUser(systemUserPayload);
+        if (systemUserResult) {
+          console.log("System user created successfully");
+        } else {
+          console.warn("Failed to create system user, but customer was created");
+        }
+        
         // Refetch customers list after successful operation
         const updatedResponse = await axios.get('/api/Customer');
         if (updatedResponse.data?.customers) {
@@ -115,6 +168,9 @@ const useCustomerStore = create((set) => ({
       return false;
     }
   },
+
+  
+  
   
   fetchCustomers: async () => {
     try {

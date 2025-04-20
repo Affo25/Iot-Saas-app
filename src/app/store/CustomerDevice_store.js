@@ -46,14 +46,14 @@ const useCustomerDeviceStore = create((set) => ({
     if (!formData.status) errors.status = 'Status is required';
     if (!formData.m1) errors.m1 = 'm1 is required';
     if (!formData.m2) errors.m2 = 'm2 is required';
-    if (!formData.inp1) errors.inp1 = 'Input1 is required';
-    if (!formData.inp2) errors.inp2 = 'Input2 is required';
-    if (!formData.inp3) errors.inp3 = 'Input3 is required';
-    if (!formData.inp4) errors.inp4 = 'Input4 is required';
-    if (!formData.outp1) errors.outp1 = 'Output1 is required';
-    if (!formData.outp2) errors.outp2 = 'Output2 is required';
-    if (!formData.outp3) errors.outp3 = 'Output3 is required';
-    if (!formData.outp4) errors.outp4 = 'Output4 is required';
+    // if (!formData.inp1) errors.inp1 = 'Input1 is required';
+    // if (!formData.inp2) errors.inp2 = 'Input2 is required';
+    // if (!formData.inp3) errors.inp3 = 'Input3 is required';
+    // if (!formData.inp4) errors.inp4 = 'Input4 is required';
+    // if (!formData.outp1) errors.outp1 = 'Output1 is required';
+    // if (!formData.outp2) errors.outp2 = 'Output2 is required';
+    // if (!formData.outp3) errors.outp3 = 'Output3 is required';
+    // if (!formData.outp4) errors.outp4 = 'Output4 is required';
 
     // No validation for devices - they're now optional
 

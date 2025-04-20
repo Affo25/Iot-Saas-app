@@ -1,7 +1,6 @@
-import Customers from '@/app/Models/Customers';
 import { NextResponse } from 'next/server';
-import { connectToMongo } from "../../mongodb_connection";
-import Device from '@/app/Models/Device';
+import { connectToMongo } from "../../lib/mongodb_connection";
+import Device from '../../Models/Device';
 
 
 // POST API to Create Device
@@ -10,7 +9,7 @@ export async function POST(request) {
     await connectToMongo();
     
     const body = await request.json();
-
+    console.log("Received create request with body:", body);
     // Validation
     if (!body.device_name || !body.device_code || !body.description) {
       return NextResponse.json(

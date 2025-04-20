@@ -1,27 +1,64 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useRouter } from 'next/navigation';
-import useUserRoleStore from '../../app/store/userRoleStore';
+import useUserRoleStore from '../store/userRoleStore';
+import useLoginStore from '../store/LoginStore';
 
 export default function Headers() {
   const router = useRouter();
   const setRole = useUserRoleStore((state) => state.setRole);
+  const role = useUserRoleStore((state) => state.role);
+  const [mounted, setMounted] = useState(false);
+  const [userName, setUserName] = useState('');
+  const logout = useLoginStore((state) => state.logout);
 
-  // Dynamically import Bootstrap JS on client only
+  // Handle client-side initialization
   useEffect(() => {
+    setMounted(true);
     import('bootstrap/dist/js/bootstrap.bundle.min.js');
+    
+    // Get user info from localStorage
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          setUserName(user.userRole || 'User');
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+    }
   }, []);
 
-  const handleRedirect = () => {
-    router.push('/Auth/Login'); // Redirects to login
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      // Clear role from userRoleStore
+      setRole('');
+      // Redirect to login page
+      router.push('/Auth/Login');
+    }
+  };
+
+  const handleLogin = () => {
+    router.push('/Auth/Login');
   };
 
   const handleRoleClick = (role) => {
-    setRole(role); // Save role to global store
+    setRole(role);
     console.log("Selected Role:", role);
   };
+
+  // Don't render anything until after hydration
+  if (!mounted) {
+    return null;
+  }
+
+  // Check if user is logged in
+  const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('token');
 
   return (
     <div className="nk-header is-light">
@@ -33,7 +70,7 @@ export default function Headers() {
                 <button
                   className="dropdown-toggle btn btn-clean"
                   data-bs-toggle="dropdown"
-                  aria-expanded="false"
+                  aria-expanded="true"
                   style={{ background: 'transparent', border: 'none' }}
                 >
                   <div className="user-toggle">
@@ -41,39 +78,48 @@ export default function Headers() {
                       <em className="icon ni ni-user-alt"></em>
                     </div>
                     <div className="user-info d-none d-md-block">
-                      Admin
+                      {isLoggedIn ? (userName || role || 'User') : 'Guest'}
                     </div>
                   </div>
                 </button>
 
-                <ul className="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1 show">
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={() => handleRoleClick('Admin')}
-                    >
-                      <em className="icon ni ni-user mr-2"></em>
-                      <span style={{ color: '#007bff' ,fontSize:"14px" ,fontWeight:"bold",fontFamily:"Roboto" }}>Admin</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={() => handleRoleClick('Customer')}
-                    >
-                      <em className="icon ni ni-users mr-2"></em>
-                      <span style={{ color: '#007bff' ,fontSize:"14px" ,fontWeight:"bold",fontFamily:"Roboto"}}>Customer</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={handleRedirect}
-                    >
-                      <em className="icon ni ni-signout mr-2 "></em>
-                      <span style={{ color: '#007bff' ,fontSize:"14px" ,fontWeight:"bold",fontFamily:"Roboto" }}>Login</span>
-                    </button>
-                  </li>
+                <ul className="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
+                  {isLoggedIn ? (
+                    <>
+                      {/* <li>
+                        <div className="dropdown-item">
+                          <em className="icon ni ni-user-alt mr-2"></em>
+                          <span style={{ color: '#333', fontSize: "14px", fontWeight: "bold", fontFamily: "Roboto" }}>
+                            {role || 'User'}
+                          </span>
+                        </div>
+                      </li> */}
+                      {/* <li className="divider"></li> */}
+                      <li>
+                        <button
+                          className="dropdown-item"
+                          onClick={handleLogout}
+                        >
+                          <em className="icon ni ni-signout mr-2"></em>
+                          <span style={{ color: '#007bff', fontSize: "14px", fontWeight: "bold", fontFamily: "Roboto" }}>
+                            Logout
+                          </span>
+                        </button>
+                      </li>
+                    </>
+                  ) : (
+                    <li>
+                      <button
+                        className="dropdown-item"
+                        onClick={handleLogin}
+                      >
+                        <em className="icon ni ni-signin mr-2"></em>
+                        <span style={{ color: '#007bff', fontSize: "14px", fontWeight: "bold", fontFamily: "Roboto" }}>
+                          Login
+                        </span>
+                      </button>
+                    </li>
+                  )}
                 </ul>
               </li>
             </ul>

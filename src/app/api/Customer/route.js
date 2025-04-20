@@ -1,6 +1,6 @@
-import Customers from '@/app/Models/Customers';
+import Customers from '../../Models/Customers';
 import { NextResponse } from 'next/server';
-import { connectToMongo } from "../../mongodb_connection";
+import { connectToMongo } from "../../lib/mongodb_connection";
 
 
 export async function POST(request) {

@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Footers() {
+export default function Footers() {
   return (
     <div class="nk-footer">
     <div class="container-fluid">
@@ -16,5 +16,3 @@ function Footers() {
 </div>
   )
 }
-
-export default Footers

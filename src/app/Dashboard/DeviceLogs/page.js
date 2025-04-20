@@ -31,6 +31,7 @@ function Page() {
   const [logToDelete, setLogToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");  // State to hold the search query
   const [currentPage, setCurrentPage] = useState(0);
+  const [customerToDelete, setCustomerToDelete] = useState(null);
   const [metaString, setMetaString] = useState('{}');
   const customersPerPage = 5;
   const [filteredLogs, setFilteredLogs] = useState(deviceLogs); // Track filtered logs

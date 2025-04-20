@@ -1,59 +1,29 @@
-"use client"; // Mark this as a Client Component
+// app/layout.js
+import './globals.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../../public/assets/css/dashlite.css';
+import TopLoadingBar from '../app/components/loading';
 
-import "./globals.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "../../public/assets/css/dashlite.css";
-import dynamic from "next/dynamic";
-import Footers from "./components/Footers";
-import Sidebar from "./components/Sidebr";
-import { ToastProvider } from './providers/ToastProvider';
-import Script from "next/script";
-import Header from "./components/Headers";
+import { Inter } from 'next/font/google';
+import Script from 'next/script';
 
-// Dynamically import Bootstrap and jQuery on the client side
-const BootstrapBundle = dynamic(() => import("bootstrap/dist/js/bootstrap.bundle.min.js"), {
-  ssr: false, // Disable SSR for this import
-});
+const inter = Inter({ subsets: ['latin'] });
 
-const Jquery = dynamic(() => import("jquery/dist/jquery.min.js"), {
-  ssr: false, // Disable SSR for this import
-});
+export const metadata = {
+  title: 'IoT SaaS App',
+  description: 'Dashboard and management system',
+};
 
 export default function RootLayout({ children }) {
-  // Static menu items
-
   return (
     <html lang="en">
-      <body className="bg-lighter npc-general has-sidebar">
-        <div className="nk-app-root">
-          <div className="nk-main">
-            {/* Sidebar */}
-            <Sidebar />
-            {/* Main Content */}
-            <div className="nk-wrap">
-              <Header/>
-              <div className="nk-content">
-                <div className="container-fluid">
-                  <div className="nk-content-inner">{children}</div>
-                </div>
-              </div>
-              <Footers />
-            </div>
-          </div>
-        </div>
+      <body className={`bg-lighter npc-general has-sidebar ${inter.className}`}>
+        {children}
+        <TopLoadingBar />
 
-        {/* Toast Notifications */}
-        <ToastProvider />
-
-        {/* Load scripts asynchronously using next/script */}
-        <Script
-          src="/Content/assets/js/bundle.js?ver=1.4.0"
-          strategy="afterInteractive" // Load after the page has been rendered
-        />
-        <Script
-          src="/Content/assets/js/scripts.js?ver=1.4.0"
-          strategy="afterInteractive" // Load after the page has been rendered
-        />
+        {/* Scripts are okay here */}
+        <Script src="/Content/assets/js/bundle.js?ver=1.4.0" strategy="afterInteractive" />
+        <Script src="/Content/assets/js/scripts.js?ver=1.4.0" strategy="afterInteractive" />
       </body>
     </html>
   );

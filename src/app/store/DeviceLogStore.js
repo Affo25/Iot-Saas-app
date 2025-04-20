@@ -197,7 +197,7 @@ const useDeviceLogsStore = create((set, get) => ({
 
       if (response.data && response.data.success) {
         toast.success('Device log deleted successfully!');
-        await fetchDeviceLogs();
+        //await fetchDeviceLogs;
         return true;
       } else {
         const errorMessage = response.data?.message || 'Failed to delete device log';

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { connectToMongo } from "../../mongodb_connection";
-import DeviceLog from '@/app/Models/DeviceLog';
+import { connectToMongo } from "../../lib/mongodb_connection";
+import DeviceLog from '../../Models/DeviceLog';
 
 export async function POST(request) {
   try {

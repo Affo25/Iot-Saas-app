@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { connectToMongo } from '../../mongodb_connection';
-import CustomersDevice from '@/app/Models/CustomersDevice';
+import { connectToMongo } from '../../lib/mongodb_connection';
+import CustomersDevice from '../../Models/CustomersDevice';
 const { Int32 } = require('bson');
 
 
