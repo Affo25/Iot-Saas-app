@@ -9,8 +9,23 @@ import { usePathname, useRouter } from 'next/navigation';
 function Sidebr() {
   const role = useUserRoleStore((state) => state.role);
   const pathname = usePathname();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Hydration-safe guard
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (pathname) {
+      setLoading(true);
+      const timer = setTimeout(() => setLoading(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname]);
+
+  if (!isMounted) return null; // Prevent mismatches until after mount
 
   const adminMenus = [
     { menu_url: '/Dashboard/page', menu_title: 'Dashboard', icon: 'ni-dashlite' },
@@ -28,15 +43,6 @@ function Sidebr() {
   ];
 
   const menuList = role === 'Admin' ? adminMenus : customerMenus;
-
-  // Show loading bar on pathname change
-  useEffect(() => {
-    if (pathname) {
-      setLoading(true);
-      const timer = setTimeout(() => setLoading(false), 400);
-      return () => clearTimeout(timer);
-    }
-  }, [pathname]);
 
   return (
     <>

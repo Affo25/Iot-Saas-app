@@ -39,8 +39,8 @@ export default function DashboardLayout({ children }) {
       <ToastProvider />
 
       {/* Load scripts asynchronously */}
-      <Script src="/Content/assets/js/bundle.js?ver=1.4.0" strategy="afterInteractive" />
-      <Script src="/Content/assets/js/scripts.js?ver=1.4.0" strategy="afterInteractive" />
+      <Script src="/public/Content/assets/js/bundle.js?ver=1.4.0" strategy="afterInteractive" />
+      <Script src="/public/Content/assets/js/scripts.js?ver=1.4.0" strategy="afterInteractive" />
     </div>
   );
 }
