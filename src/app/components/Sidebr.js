@@ -16,7 +16,7 @@ function Sidebr() {
     { menu_url: '/Dashboard/page', menu_title: 'Dashboard', icon: 'ni-dashlite' },
     { menu_url: '/Dashboard/Customers', menu_title: 'Customers', icon: 'ni-users' },
     { menu_url: '/Dashboard/Device', menu_title: 'Devices', icon: 'ni-dashlite' },
-    { menu_url: '/Dashboard/DeviceLogs', menu_title: 'Device Logs', icon: 'ni-activity' },
+    { menu_url: '/Dashboard/DeviceLogs', menu_title: 'DeviceLogs', icon: 'ni-activity' },
     { menu_url: '/Dashboard/CustomersDevice', menu_title: 'CustomersDevice', icon: 'ni-activity' },
     { menu_url: '/Dashboard/Reports', menu_title: 'Reports', icon: 'ni-report' },
   ];
