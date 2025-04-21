@@ -69,7 +69,7 @@ export async function GET(request) {
     await connectToMongo();
 
     // Fetch all device logs from the database, sorted by created_at descending
-    const deviceLogs = await DeviceLog.find({}).sort();
+    const deviceLogs = await DeviceLog.find({});
     console.log("📌 DeviceLog Data:", deviceLogs.length, "records found");
 
     return NextResponse.json(
