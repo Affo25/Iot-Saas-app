@@ -73,7 +73,7 @@ const useDeviceLogsStore = create((set, get) => ({
 
       console.log("🚀 Data sent to API:", dataToSend);
 
-      const response = await axios.post('/api/DeviceLog', dataToSend);
+      const response = await axios.post('/api/Devicelog', dataToSend);
 
       if (response.data?.success) {
         toast.success('Device log added successfully!');
@@ -126,7 +126,7 @@ const useDeviceLogsStore = create((set, get) => ({
     try {
       set({ loading: true });
   
-      const url = '/api/DeviceLog'; // no query params
+      const url = '/api/Devicelog';
   
       const response = await axios.get(url);
   
@@ -164,7 +164,7 @@ const useDeviceLogsStore = create((set, get) => ({
 
       console.log("✅ Sending to API:", finalData);
 
-      const response = await axios.put('/api/DeviceLog', finalData);
+      const response = await axios.put('/api/Devicelog', finalData);
 
       if (response.data?.success) {
         toast.success('✅ Device log updated successfully!');
@@ -192,7 +192,7 @@ const useDeviceLogsStore = create((set, get) => ({
       set({ loading: true, error: null });
       console.log(`Attempting to delete device log with ID: ${logId}`);
 
-      const response = await axios.delete(`/api/DeviceLog?_id=${logId}`);
+      const response = await axios.delete(`/api/Devicelog?_id=${logId}`);
       console.log('Delete API response:', response.data);
 
       if (response.data && response.data.success) {
