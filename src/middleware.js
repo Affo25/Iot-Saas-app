@@ -6,11 +6,6 @@ const publicRoutes = [
   '/api/Auth/Login',
   '/api/Auth/Register',
   '/api/Auth/Verify',
-  "/api/Customer",
-  "/api/systemUsers",
-  '/api/Device',
-  '/api/CustomersDevice',
-  '/api/DeviceLogs'
 ];
 
 const verifyToken = async (token) => {
@@ -42,5 +37,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/api/',]
+  matcher: ['/api/','/Dashboard/:path*']
 };
