@@ -87,6 +87,7 @@ export async function POST(request) {
       success: true,
       message: 'Login successful',
       user: customerWithoutPassword,
+      token: token
     });
 
     // Set the token as an HttpOnly cookie

@@ -42,5 +42,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/api/'], // Only applies to API routes
+  matcher: ['/api/:path*', '/api/Customer/:path*', "/api/CustomersDevice/:path*", "/Dashboard/:path*"]
 };
