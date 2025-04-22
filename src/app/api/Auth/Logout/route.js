@@ -7,7 +7,7 @@ export async function POST() {
       success: true,
       message: 'Logged out successfully',
     });
-
+    response.cookies.delete('token');
     // Clear the token cookie
     response.cookies.set('token', '', {
       httpOnly: true,
@@ -16,7 +16,7 @@ export async function POST() {
       sameSite: 'lax',
       maxAge: 0, // Expire immediately
     });
-
+    
     return response;
   } catch (error) {
     console.error('Logout error:', error);

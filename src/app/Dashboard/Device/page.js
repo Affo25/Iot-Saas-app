@@ -8,6 +8,9 @@ import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import useDeviceStore from "../../store/DeviceStore";
+
+
+
 function Page() {
   const {
     devices,
@@ -22,7 +25,6 @@ function Page() {
     deleteDevice,
     fetchCustomersList
   } = useDeviceStore();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -85,7 +87,7 @@ const currentCustomers = Array.isArray(filteredCustomers) && filteredCustomers.l
   };
 
   useEffect(() => {
-    // Fetch customers when component mounts
+   
     fetchDevices();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

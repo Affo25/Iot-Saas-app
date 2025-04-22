@@ -6,7 +6,6 @@ import useCustomerDeviceStore from '../../store/CustomerDevice_store';
 import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-
 function Page() {
   const {
     CustomersDevice,
@@ -22,7 +21,6 @@ function Page() {
     deleteCustomerDevice,
     fetchSingleCustomer
   } = useCustomerDeviceStore();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -77,7 +75,7 @@ function Page() {
   useEffect(() => {
     // Replace with your actual source of customerId
     const customerId = '67f621c47111f9c67cfc796f'; // or get it from state/props
-
+  
     fetchCustomerDevice();
     fetchSingleCustomer(customerId);
     console.log("Current Customer detail:", customer);

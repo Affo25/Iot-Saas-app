@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { connectToMongo } from '../../../lib/mongodb_connection';
+import  connectToMongo  from '../../../lib/mongodb_connection';
 import jwt from 'jsonwebtoken';
-import Customers from '../../../Models/Customers';
-import bcrypt from 'bcryptjs';
 import systemUsers from '../../../Models/systemUsers';
 
 export async function POST(request) {
@@ -76,9 +74,10 @@ export async function POST(request) {
         email: customer.email,
         role: customer.userRole,
       },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '1d' }
+      process.env.JWT_SECRET || 'secret_key',
+      { expiresIn: '1d' , algorithm: 'HS256'}
     );
+    console.log("procees environment",process.env.JWT_SECRET);
 
     const customerObj = customer.toObject();
     const { password: _, ...customerWithoutPassword } = customerObj;
@@ -98,7 +97,7 @@ export async function POST(request) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 1 day
     });
-     console.log(response);
+     console.log("Cookie set resposne",response);
     return response;
   } catch (error) {
     console.error('Login error:', error);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToMongo } from "../../lib/mongodb_connection";
+import  connectToMongo  from "../../lib/mongodb_connection";
 import Customers from "../../Models/Customers";
 import { ObjectId } from "mongodb";
 

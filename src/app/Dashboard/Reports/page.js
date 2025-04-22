@@ -18,31 +18,31 @@ export default function Reports() {
   //     return;
   //   }
 
-  //   // // Fetch customer's reports
-  //   // const fetchReports = async () => {
-  //   //   try {
-  //   //     setLoading(true);
-  //   //     // Get customer ID from localStorage
-  //   //     const customerId = localStorage.getItem('customer-id');
-  //   //     if (!customerId) {
-  //   //       throw new Error('Customer ID not found');
-  //   //     }
+  //   // Fetch customer's reports
+  //   const fetchReports = async () => {
+  //     try {
+  //       setLoading(true);
+  //       // Get customer ID from localStorage
+  //       const customerId = localStorage.getItem('customer-id');
+  //       if (!customerId) {
+  //         throw new Error('Customer ID not found');
+  //       }
         
-  //   //     // Use the correct API endpoint with the customer ID
-  //   //     const response = await fetch(`/api/Reports?customerId=${customerId}`);
-  //   //     if (!response.ok) {
-  //   //       const errorData = await response.json();
-  //   //       throw new Error(errorData.message || 'Failed to fetch reports');
-  //   //     }
-  //   //     const data = await response.json();
-  //   //     setReports(data);
-  //   //     setLoading(false);
-  //   //   } catch (error) {
-  //   //     console.error('Error fetching reports:', error);
-  //   //     setError(error.message || 'Failed to load reports. Please try again later.');
-  //   //     setLoading(false);
-  //   //   }
-  //   // };
+  //       // Use the correct API endpoint with the customer ID
+  //       const response = await fetch(`/api/Reports?customerId=${customerId}`);
+  //       if (!response.ok) {
+  //         const errorData = await response.json();
+  //         throw new Error(errorData.message || 'Failed to fetch reports');
+  //       }
+  //       const data = await response.json();
+  //       setReports(data);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error('Error fetching reports:', error);
+  //       setError(error.message || 'Failed to load reports. Please try again later.');
+  //       setLoading(false);
+  //     }
+  //   };
 
 
   // }, [router]);

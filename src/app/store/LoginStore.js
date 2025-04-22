@@ -56,7 +56,7 @@ const useLoginStore = create((set, get) => ({
     console.log("passed data to api", dataToUse);
 
     try {
-      const res = await axios.post('/api/Auth/Login', dataToUse);
+      const res = await axios.post('/api/Auth/Login', dataToUse, {withCredentials:true});
 
       if (res.data && res.data.success) {
         const { token, user } = res.data;
@@ -65,6 +65,7 @@ const useLoginStore = create((set, get) => ({
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('user-role', user.userRole || 'Customer');
+        
 
         // Set auth header for future requests
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -104,7 +105,7 @@ const useLoginStore = create((set, get) => ({
       
       // Remove Authorization header
       delete axios.defaults.headers.common['Authorization'];
-      
+  
       // Reset store state
       set({
         loading: false,
@@ -117,9 +118,9 @@ const useLoginStore = create((set, get) => ({
         },
         formErrors: {}
       });
-      
+    
       toast.success('Logged out successfully');
-      return { success: true };
+      return { success: true ,response: res.data };
     } catch (err) {
       const message = err?.response?.data?.message || err.message || 'Logout failed';
       set({ error: message, loading: false });

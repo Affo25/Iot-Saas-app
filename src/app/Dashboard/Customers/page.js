@@ -107,6 +107,7 @@ function Page() {
 
   useEffect(() => {
     // Fetch customers when component mounts
+    
     fetchCustomers();
     fetchDevicesList();
     

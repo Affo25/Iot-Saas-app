@@ -20,7 +20,6 @@ function Page() {
     fetchDeviceLogs,
     deleteDeviceLog
   } = useDeviceLogsStore();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -58,6 +57,7 @@ function Page() {
   };
 
   useEffect(() => {
+  
     fetchDeviceLogs();
   }, []);
 
