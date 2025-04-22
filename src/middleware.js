@@ -69,7 +69,7 @@ export async function middleware(request) {
 // Middleware only runs on these routes
 export const config = {
   matcher: [
-    '/api/',
+    '/api/:path*',
     '/Dashboard/:path*',
   ],
 };
