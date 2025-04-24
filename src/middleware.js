@@ -7,6 +7,7 @@ const publicRoutes = [
   '/api/Auth/Login',
   '/api/Auth/Register',
   '/api/Auth/Verify',
+  '/api/Devicelog'
 ];
 
 const verifyToken = async (token) => {
