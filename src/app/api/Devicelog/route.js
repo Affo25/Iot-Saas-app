@@ -1,23 +1,29 @@
 import { NextResponse } from 'next/server';
-import  connectToMongo  from "../../lib/mongodb_connection";
+import connectToMongo from '../../lib/mongodb_connection';
 import DeviceLog from '../../Models/DeviceLog';
 
+// Utility to check API key
+function validateApiKey(request) {
+  const url = new URL(request.url);
+  const apiKey = url.searchParams.get('api_key');
+  return apiKey === process.env.API_KEY;
+}
+
 export async function POST(request) {
+  if (!validateApiKey(request)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized: Invalid API key' },
+      { status: 401 }
+    );
+  }
+
   try {
-    // Connect to MongoDB
     await connectToMongo();
-    
     const body = await request.json();
     console.log("📩 DeviceLog POST body:", body);
 
-    const {
-      device_code,
-      humidity,
-      temperature,
-      meta = {},
-    } = body;
+    const { device_code, humidity, temperature, meta = {} } = body;
 
-    // Validate the request body
     if (!device_code) {
       return NextResponse.json(
         { success: false, message: "Device code is required" },
@@ -25,20 +31,18 @@ export async function POST(request) {
       );
     }
 
-    // Validate that meta is a valid JSON object
     let metaObject = meta;
     if (typeof meta === 'string') {
       try {
         metaObject = JSON.parse(meta);
-      } catch (error) {
+      } catch {
         return NextResponse.json(
-          { success: false, message: "Meta data must be a valid JSON object" },
+          { success: false, message: "Meta must be a valid JSON object" },
           { status: 400 }
         );
       }
     }
 
-    // Create new device log
     const deviceLog = new DeviceLog({
       device_code,
       humidity: Number(humidity) || 0,
@@ -47,7 +51,6 @@ export async function POST(request) {
       created_at: new Date()
     });
 
-    // Save device log to the database
     await deviceLog.save();
 
     return NextResponse.json(
@@ -63,18 +66,22 @@ export async function POST(request) {
   }
 }
 
+export async function GET(request) {
+  if (!validateApiKey(request)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized: Invalid API key' },
+      { status: 401 }
+    );
+  }
 
-export async function GET() {
   try {
     await connectToMongo();
-
-    // Fetch all device logs from the database, sorted by created_at descending
     const deviceLogs = await DeviceLog.find({});
     console.log("📌 DeviceLog Data:", deviceLogs.length, "records found");
 
     return NextResponse.json(
-      { 
-        success: true, 
+      {
+        success: true,
         message: "All device logs retrieved successfully",
         data: deviceLogs
       },
@@ -89,42 +96,14 @@ export async function GET() {
   }
 }
 
-//GET API to Retrieve Device Logs
-// export async function GET(request) {
-//   try {
-//     await connectToMongo();
-//     const url = new URL(request.url);
-//     const device_code = url.searchParams.get('device_code');
-    
-//     let query = {};
-//     if (device_code) {
-//       query.device_code = device_code;
-//     }
-
-//     // Retrieve device logs with optional filtering
-//     const deviceLogs = await DeviceLog.find(query).sort({ created_at: -1 });
-//     console.log("📌 DeviceLog Data:", deviceLogs.length, "records found");
-
-//     return NextResponse.json(
-//       { 
-//         success: true, 
-//         message: "Device logs retrieved successfully",
-//         data: deviceLogs
-//       },
-//       { status: 200 }
-//     );
-//   } catch (error) {
-//     console.error("❌ GET error:", error);
-//     return NextResponse.json(
-//       { success: false, message: "Internal Server Error", error: error.message },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-
-// DELETE API to Remove a Device Log
 export async function DELETE(request) {
+  if (!validateApiKey(request)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized: Invalid API key' },
+      { status: 401 }
+    );
+  }
+
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get('_id');
@@ -138,7 +117,6 @@ export async function DELETE(request) {
 
     await connectToMongo();
 
-    // Find and delete the device log by ID
     const deletedDeviceLog = await DeviceLog.findByIdAndDelete(id);
 
     if (!deletedDeviceLog) {
@@ -148,7 +126,7 @@ export async function DELETE(request) {
       );
     }
 
-    console.log(`Device log with ID ${id} deleted successfully`);
+    console.log(`✅ Device log with ID ${id} deleted successfully`);
 
     return NextResponse.json(
       {
@@ -167,22 +145,21 @@ export async function DELETE(request) {
   }
 }
 
-// PUT API to Update a Device Log
 export async function PUT(request) {
+  if (!validateApiKey(request)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized: Invalid API key' },
+      { status: 401 }
+    );
+  }
+
   try {
     await connectToMongo();
     const body = await request.json();
     console.log("📩 DeviceLog PUT body:", body);
 
-    const {
-      _id,
-      device_code,
-      humidity,
-      temperature,
-      meta,
-    } = body;
+    const { _id, device_code, humidity, temperature, meta } = body;
 
-    // Validate required fields
     if (!_id) {
       return NextResponse.json(
         { success: false, message: "Device log ID is required" },
@@ -190,12 +167,11 @@ export async function PUT(request) {
       );
     }
 
-    // Validate that meta is a valid JSON object if provided
     let metaObject = meta;
     if (meta && typeof meta === 'string') {
       try {
         metaObject = JSON.parse(meta);
-      } catch (error) {
+      } catch {
         return NextResponse.json(
           { success: false, message: "Meta data must be a valid JSON object" },
           { status: 400 }
@@ -203,7 +179,6 @@ export async function PUT(request) {
       }
     }
 
-    // Build updated data
     const updateData = {
       updated_at: new Date()
     };
@@ -213,10 +188,9 @@ export async function PUT(request) {
     if (temperature !== undefined) updateData.temperature = Number(temperature);
     if (meta !== undefined) updateData.meta = metaObject;
 
-    console.log("Updating device log with ID:", _id);
+    console.log("🔧 Updating device log with ID:", _id);
     console.log("Update data:", updateData);
 
-    // Update the device log
     const updatedDeviceLog = await DeviceLog.findByIdAndUpdate(
       _id,
       updateData,
@@ -242,3 +216,31 @@ export async function PUT(request) {
     );
   }
 }
+
+
+
+ // // Fetch all device logs or filter by device code
+  // fetchDeviceLogs: async (deviceCode = "pk-112232") => {
+  //   try {
+  //     set({ loading: true });
+
+  //     let url = '/api/DeviceLog';
+  //     if (deviceCode) {
+  //       url += `?device_code=${deviceCode}`;
+  //     }
+
+  //     const response = await axios.get(url);
+
+  //     if (response.data && response.data.data) {
+  //       set({ deviceLogs: response.data.data, loading: false });
+  //     } else {
+  //       set({ deviceLogs: [], loading: false });
+  //       console.error('Unexpected API response format:', response.data);
+  //     }
+  //   } catch (error) {
+  //     const errorMessage = error.response?.data?.message || 'Failed to fetch device logs';
+  //     toast.error(errorMessage);
+  //     console.error('Error fetching device logs:', error);
+  //     set({ error: errorMessage, loading: false });
+  //   }
+  // },
