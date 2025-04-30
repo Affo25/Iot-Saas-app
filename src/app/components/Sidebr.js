@@ -13,7 +13,7 @@ function Sidebr() {
   const [loading, setLoading] = useState(false);
 
   const adminMenus = [
-    { menu_url: '/Dashboard/page', menu_title: 'Dashboard', icon: 'ni-dashlite' },
+    { menu_url: '/Dashboard', menu_title: 'Dashboard', icon: 'ni-dashlite' },
     { menu_url: '/Dashboard/Customers', menu_title: 'Customers', icon: 'ni-users' },
     { menu_url: '/Dashboard/Device', menu_title: 'Devices', icon: 'ni-dashlite' },
     { menu_url: '/Dashboard/DeviceLogs', menu_title: 'DeviceLogs', icon: 'ni-activity' },
@@ -80,7 +80,7 @@ function Sidebr() {
             <div className="nk-sidebar-content">
               <div className="nk-sidebar-menu" data-simplebar>
               <ul className="nk-menu">
-    {customerMenus.map((menu, index) => {
+    {menuList.map((menu, index) => {
       const isActive = pathname === menu.menu_url;
       return (
         <li
@@ -104,7 +104,7 @@ function Sidebr() {
   </ul>
   
               </div>
-            </div>
+            </div>  
           </div>
         </div>
       </>
