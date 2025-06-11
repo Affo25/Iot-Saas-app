@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from "react";
 import 'react-datepicker/dist/react-datepicker.css';
 import useCustomerDeviceStore from '../../store/CustomerDevice_store';
-import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import DataTable from '../../components/Tables/DataTable';
+import DeleteModal from '../../components/deleteModals/DeleteModal';
+import Button from "../../components/Theme/button";
+
 function Page() {
   const {
     CustomersDevice,
@@ -21,74 +24,46 @@ function Page() {
     deleteCustomerDevice,
     fetchSingleCustomer
   } = useCustomerDeviceStore();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentCustomerId, setCurrentCustomerId] = useState(null);
   const [customerToDelete, setCustomerToDelete] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");  // State to hold the search query
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const customersPerPage = 5;
-  const [filteredCustomers, setFilteredCustomers] = useState(CustomersDevice); // Track filtered customers
+  const [filteredCustomers, setFilteredCustomers] = useState(CustomersDevice);
   const [formsData, setFormsData] = useState({
-    selectedDevices: [], // Ensure it's initialized as an empty array
-    // Other form fields...
+    selectedDevices: [],
   });
 
-
-  console.log("Filtered Customers:", filteredCustomers);
   const customersList = Array.isArray(filteredCustomers) ? filteredCustomers : [];
+  const currentCustomers = CustomersDevice.slice(currentPage * customersPerPage, (currentPage * customersPerPage) + customersPerPage);
 
-  const offset = currentPage * customersPerPage;
-  const currentCustomers = CustomersDevice.slice(offset, offset + customersPerPage);
-
-  const handlePageClick = (selected) => {
-    setCurrentPage(selected.selected);
-  };
-
-  const handleSearchChange = (e) => {
-    console.log(e.target.value);
-    setSearchQuery(e.target.value); // Update search query state
-  };
-
-
-
-  const handleDelete = async (customerId) => {
+  const handleDelete = async (customer) => {
     try {
-      // Call deleteCustomer function from Zustand store
-      const success = await deleteCustomerDevice(customerId);
+      const success = await deleteCustomerDevice(customer._id);
       if (success) {
         setCloseDeleteModal();
-        console.log('Customer deleted successfully');
+        console.log('Customer device deleted successfully');
       } else {
-        console.error('Failed to delete customer');
+        console.error('Failed to delete customer device');
       }
     } catch (error) {
       console.error('Error in handleDelete:', error);
     }
   };
 
-
-
-
-
   useEffect(() => {
     // Replace with your actual source of customerId
     const customerId = '67f621c47111f9c67cfc796f'; // or get it from state/props
-  
     fetchCustomerDevice();
     fetchSingleCustomer(customerId);
-    console.log("Current Customer detail:", customer);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openModal = () => {
     setIsModalOpen(true);
-  };
-
-  const openDeleteModal = () => {
-    setIsDeleteModalOpen(true);
   };
 
   const setCloseDeleteModal = () => {
@@ -96,19 +71,16 @@ function Page() {
     setCustomerToDelete(null);
   };
 
-  // Effect to update filtered customers whenever searchQuery changes
   useEffect(() => {
-    const query = searchQuery.toLowerCase(); // Lowercase search query
+    const query = searchQuery.toLowerCase();
     const updatedFilteredCustomers = CustomersDevice.filter((customer) => {
       return (
         (customer.title?.toLowerCase().includes(query) ?? false) ||
         (customer.device_code?.toLowerCase().includes(query) ?? false) ||
         (customer.device_serial_number?.toLowerCase().includes(query) ?? false)
-
       );
     });
-    console.log("Updated Filtered Customers:", updatedFilteredCustomers);
-    setFilteredCustomers(updatedFilteredCustomers); // Update the filtered customers
+    setFilteredCustomers(updatedFilteredCustomers);
   }, [searchQuery, CustomersDevice]);
 
   const closeModal = () => {
@@ -116,7 +88,6 @@ function Page() {
     setIsEditMode(false);
     setCurrentCustomerId(null);
 
-    // Reset form data and errors when closing modal
     setFormData({
       title: '',
       description: '',
@@ -136,9 +107,8 @@ function Page() {
       outp4: "",
     });
 
-    // Reset formsData state as well
     setFormsData({
-      selectedDevices: [], // Use selectedDevices to match the checkbox name
+      selectedDevices: [],
     });
 
     useCustomerDeviceStore.setState({ formErrors: {} });
@@ -164,23 +134,15 @@ function Page() {
     }
   };
 
-
-
-  const handleDateChange = (date) => {
-    setFormData({ package_expiry: date });
-  };
-
   const handleEdit = (customerDevice) => {
     console.log("Editing customer device:", customerDevice);
 
-    // Extract device names from customer's devices array (if available)
     const selectedDevices = customerDevice.devices
       ? customerDevice.devices.map(device =>
         typeof device === 'object' ? device.device_name || device : device
       )
       : [];
 
-    // Set formData with customer device info
     setFormData({
       title: customerDevice.title || '',
       description: customerDevice.description || '',
@@ -200,7 +162,6 @@ function Page() {
       outp4: customerDevice.outp4 || ''
     });
 
-    // Update formsData for the checkboxes
     setFormsData({
       selectedDevices: selectedDevices.includes(customerDevice.device_code)
         ? selectedDevices
@@ -209,18 +170,14 @@ function Page() {
           : selectedDevices
     });
 
-    // Set edit mode and current device ID
     setIsEditMode(true);
     setCurrentCustomerId(customerDevice._id);
-
-    // Open the modal
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate the form data
     if (!validateForm()) return;
 
     let success;
@@ -236,16 +193,13 @@ function Page() {
         description: formData.description || "",
         status: Number(formData.status) || 0,
       };
-       console.log("Updated Form Data to Submit:", updatedFormData);
+      
       if (isEditMode && currentCustomerId) {
         console.log("Updating customer with ID:", currentCustomerId);
         console.log("Updated Form Data to Submit:", updatedFormData);
-
         success = await updateCustomerDevice(currentCustomerId, updatedFormData);
       } else {
         console.log("Adding new customerDevice");
-
-        // Pass the updatedFormData to Zustand function
         success = await addCustomerDevice(updatedFormData);
       }
 
@@ -259,9 +213,7 @@ function Page() {
     }
   };
 
-
-
-   const exportJsonToExcel = async (jsonData, fileName = 'device_data.xlsx') => {
+  const exportJsonToExcel = async (jsonData, fileName = 'device_data.xlsx') => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sheet 1');
   
@@ -284,7 +236,14 @@ function Page() {
   
     saveAs(blob, fileName);
   };
- 
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handlePageClick = (selected) => {
+    setCurrentPage(selected.selected);
+  };
 
   return (
     <div className="nk-content-body">
@@ -305,148 +264,106 @@ function Page() {
                 <button className="btn btn-danger ml-1" onClick={exportJsonToExcel}>
                   <span>Download Excel</span>
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-primary ml-1"
-                  onClick={openModal}
-                >
-                  <span>Add New</span>
-                </button>
+               <Button onClick={openModal}/>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Customers Table */}
+        {/* Customers Devices Table */}
         <div className="row pt-3">
           <div className="col-12">
-            <div className="card card-bordered card-preview">
-              <div className="card-inner-group">
-                <div className="card-inner">
-                  <div className="card-title-group">
-                    <div className="card-title">
-                      <h5 className="title">
-                        Total Customers Devices
-                        <span className="badge badge-info ml-2">
-                          {filteredCustomers.length}
-                        </span>
-                      </h5>
-                    </div>
-                    {/* Search and other controls... */}
-                    <div className="col-md-3">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Search customers..."
-                        value={searchQuery}
-                        onChange={handleSearchChange}  // Update the search query
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card-inner p-0 table-responsive">
-                  <table className="table  table-hover nowrap  align-middle dataTable-init">
-                    <thead style={{ fontSize: "14px", fontWeight: 'bold' }} className="tb-tnx-head " id="datatable-default_wrapper">
-                      <tr>
-                        <th scope="col">#</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Device Code</th>
-                        <th>Customer ID</th>
-                        <th>Inputs</th>
-                        <th>Outputs</th>
-                        <th>M1</th>
-                        <th>M2</th>
-                        <th>Device Serial No</th>
-                        <th>Status</th>
-                        <th scope="col">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
-                      {loading ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            <span className="spinner-border text-secondary" role="status">
-                              <span className="visually-hidden">Loading...</span>
-                            </span>
-                          </td>
-                        </tr>
-                      ) : filteredCustomers.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            No customers device found. Add a new customer to get started.
-                          </td>
-                        </tr>
-                      ) : currentCustomers.map((customer, index) => (
-                        <tr key={customer._id}>
-                          <td><b>{index + 1}</b></td>
-                          <td>{customer.title}</td>
-                          <td>{customer.description}</td>
-                        
-                          <td>
-                            <span
-                              className={`badge badge-warning`}>
-                              {customer.device_code}
-                            </span>
-                          </td>
-                          <td>{customer.customer_id}</td>
-                          <td>{customer.inp1},{customer.inp2},{customer.inp3},{customer.inp4}</td>
-                          <td>{customer.outp1},{customer.outp2},{customer.outp3},{customer.outp4}</td>
-                          <td>{customer.m1}</td>
-                          <td>{customer.m2}</td>
-                          <td>
-                            <span
-                              className={`badge badge-success`}>
-                              {customer.device_serial_number}
-                            </span>
-                          </td>
-                          <td>
-                            <span
-                              className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'danger' : 'danger'}`}>
-                              {customer.status}
-                            </span>
-                          </td>
-                        
-                          <td className="text-center">
-                            <button className="btn btn-danger btn btn-sm ml-3" onClick={() => {
-                              setCustomerToDelete(customer);
-                              setIsDeleteModalOpen(true);
-                            }}>
-                              <span>Delete</span>
-                            </button>
-                            <button className="btn btn-primary btn btn-sm ml-1" onClick={() => handleEdit(customer)}>
-                              <span>Edit</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                      }
-                    </tbody>
-
-                  </table>
-                  {/* Pagination Component */}
-                  <ReactPaginate
-                    previousLabel={"Previous"}
-                    nextLabel={"Next"}
-                    pageCount={Math.ceil(filteredCustomers.length / customersPerPage)}
-                    onPageChange={handlePageClick}
-                    containerClassName={"pagination justify-content-end"}
-                    pageClassName={"page-item"}
-                    pageLinkClassName={"page-link"}
-                    previousClassName={"page-item"}
-                    previousLinkClassName={"page-link"}
-                    nextClassName={"page-item"}
-                    nextLinkClassName={"page-link"}
-                    activeClassName={"active"}
-                  />
-                </div>
-              </div>
-            </div>
+            <DataTable
+              data={filteredCustomers}
+              loading={loading}
+              title="Total Customers Devices"
+              searchPlaceholder="Search customer devices..."
+              emptyMessage="No customer devices found. Add a new device to get started."
+              itemsPerPage={customersPerPage}
+              searchQuery={searchQuery}
+              onSearch={handleSearchChange}
+              onEdit={handleEdit}
+              onDelete={(customer) => {
+                setCustomerToDelete(customer);
+                setIsDeleteModalOpen(true);
+              }}
+              columns={[
+                {
+                  header: "Title",
+                  accessor: "title",
+                },
+                {
+                  header: "Description",
+                  accessor: "description",
+                },
+                {
+                  header: "Device Code",
+                  accessor: "device_code",
+                  render: (item) => (
+                    <span className="badge badge-warning">{item.device_code}</span>
+                  ),
+                },
+                {
+                  header: "Customer ID",
+                  accessor: "customer_id",
+                  render: (item) => (
+                    <span className="badge badge-danger">{item.customer_id}</span>
+                  ),
+                },
+                {
+                  header: "Inputs",
+                  accessor: "inputs",
+                  render: (item) => (
+                    <span className="badge badge-primary">
+                      {item.inp1 || 0}, {item.inp2 || 0}, {item.inp3 || 0}, {item.inp4 || 0}
+                    </span>
+                  ),
+                },
+                {
+                  header: "Outputs",
+                  accessor: "outputs",
+                  render: (item) => (
+                    <span className="badge badge-success">
+                      {item.outp1 || 0}, {item.outp2 || 0}, {item.outp3 || 0}, {item.outp4 || 0}
+                    </span>
+                  ),
+                },
+                {
+                  header: "M1",
+                  accessor: "m1",
+                  render: (item) => (
+                    <span className="badge badge-info">{item.m1 || 0}</span>
+                  ),
+                },
+                {
+                  header: "M2",
+                  accessor: "m2",
+                  render: (item) => (
+                    <span className="badge badge-info">{item.m2 || 0}</span>
+                  ),
+                },
+                {
+                  header: "Device Serial No",
+                  accessor: "device_serial_number",
+                  render: (item) => (
+                    <span className="badge badge-warning">{item.device_serial_number}</span>
+                  ),
+                },
+                {
+                  header: "Status",
+                  accessor: "status",
+                  render: (item) => (
+                    <span className={`badge badge-${item.status === 1 ? 'success' : 'danger'}`}>
+                      {item.status === 1 ? 'Active' : 'Inactive'}
+                    </span>
+                  ),
+                },
+              ]}
+            />
           </div>
         </div>
 
-        {/* Add Customer Modal */}
+         {/* Add Customer Modal */}
         {isModalOpen && (
           <div className="modal fade zoom show" style={{ display: "block" }}>
             <div className="modal-dialog modal-xl" role="document">
@@ -779,66 +696,20 @@ function Page() {
             </div>
           </div>
         )}
-
-
-        {/* Delete Customer Modal */}
-        {isDeleteModalOpen && (
-          <div className="modal fade zoom show" style={{ display: "block" }}>
-            <div className="modal-dialog modal-sm" role="document">
-              <div className="modal-content">
-                <div className="modal-header bg-primary">
-                  <h5 className="modal-title text-white">
-                    <span>Delete Confirmtion</span>
-                  </h5>
-
-                </div>
-                <form onSubmit={handleSubmit}>
-                  <div className="modal-body pt-3">
-                    {useCustomerDeviceStore.getState().error && (
-                      <div className="alert alert-danger">
-                        {useCustomerDeviceStore.getState().error}
-                      </div>
-                    )}
-
-                    <div className="row">
-                      <div className="col-md-12">
-                        <div className="form-group mt-1">
-                          <div className="form-control-wrap">
-                            <h5>Do You want to delete this customer?</h5>
-
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>
-                      <div className="col-md-12"></div>
-                      <div className="col-md-9 text-right pt-2">
-                        <ul className="list-inline mb-0">
-                          <li className="list-inline-item mr-2">
-                            <button type="button" className="btn btn-primary w-100 justify-center" onClick={() => customerToDelete && handleDelete(customerToDelete._id)} disabled={loading || !customerToDelete}>
-                              <span>Yes</span>
-                            </button>
-                          </li>
-                          <li className="list-inline-item">
-                            <button type="button" className="btn btn-danger w-100 justify-center" onClick={setCloseDeleteModal} disabled={loading}>
-                              <span>No</span>
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-
+        
+        {/* Delete Modal */}
+        <DeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={setCloseDeleteModal}
+          onConfirm={handleDelete}
+          title="Delete Confirmation"
+          message="Do you want to delete this customer device?"
+          loading={loading}
+          itemToDelete={customerToDelete}
+        />
       </div>
-
     </div>
   );
 }
 
-export default Page; 
+export default Page;

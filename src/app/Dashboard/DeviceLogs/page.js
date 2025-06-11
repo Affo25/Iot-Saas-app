@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from "react";
 import 'react-datepicker/dist/react-datepicker.css';
 import useDeviceLogsStore from '../../store/DeviceLogStore';
-import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import DataTable from '../../components/Tables/DataTable';
+import DeleteModal from '../../components/deleteModals/DeleteModal';
 
 function Page() {
   const {
@@ -216,92 +217,43 @@ function Page() {
         </div>
         <div className="row pt-3">
           <div className="col-12">
-            <div className="card card-bordered card-preview">
-              <div className="card-inner-group">
-                <div className="card-inner">
-                  <div className="card-title-group">
-                    <div className="card-title">
-                      <h5 className="title">
-                        Total Devices Logs
-                        <span className="badge badge-info ml-2">{deviceLogs.length}</span>
-                      </h5>
-                    </div>
-                    <div className="col-md-3">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Search customers..."
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="card-inner p-0 table-responsive">
-                  <table className="table table-hover nowrap align-middle dataTable-init">
-                    <thead style={{ fontSize: "14px", fontWeight: 'bold' }} className="tb-tnx-head" id="datatable-default_wrapper">
-                      <tr>
-                        <th scope="col">#</th>
-                        <th>Device Code</th>
-                        <th>Humidity</th>
-                        <th>Temperature</th>
-                        <th>Meta</th>
-                        <th scope="col">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
-                      {loading ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            <span className="spinner-border text-secondary" role="status">
-                              <span className="visually-hidden">Loading...</span>
-                            </span>
-                          </td>
-                        </tr>
-                      ) : filteredLogs.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            No device log found. Add a new customer to get started.
-                          </td>
-                        </tr>
-                      ) : currentLogs.map((deviceLog, index) => (
-                        <tr key={deviceLog._id}>
-                          <td><b>{index + 1}</b></td>
-                          <td>
-                            <span className={`badge badge-warning`}>{deviceLog.device_code}</span>
-                          </td>
-                          <td>{deviceLog.humidity}</td>
-                          <td>{deviceLog.temperature}</td>
-                          <td>{JSON.stringify(deviceLog.meta)}</td>
-                          <td className="text-center">
-                            <button className="btn btn-danger btn-sm ml-3" onClick={() => { setLogToDelete(deviceLog); setIsDeleteModalOpen(true); }}>
-                              <span>Delete</span>
-                            </button>
-                            <button className="btn btn-primary btn-sm ml-1" onClick={() => handleEdit(deviceLog)}>
-                              <span>Edit</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <ReactPaginate
-                    previousLabel={"Previous"}
-                    nextLabel={"Next"}
-                    pageCount={Math.ceil(filteredLogs.length / customersPerPage)}
-                    onPageChange={handlePageClick}
-                    containerClassName={"pagination justify-content-end"}
-                    pageClassName={"page-item"}
-                    pageLinkClassName={"page-link"}
-                    previousClassName={"page-item"}
-                    previousLinkClassName={"page-link"}
-                    nextClassName={"page-item"}
-                    nextLinkClassName={"page-link"}
-                    activeClassName={"active"}
-                  />
-                </div>
-              </div>
-            </div>
+            <DataTable
+              data={filteredLogs}
+              loading={loading}
+              title="Total Devices Logs"
+              searchPlaceholder="Search device logs..."
+              emptyMessage="No device log found. Add a new device log to get started."
+              itemsPerPage={customersPerPage}
+              searchQuery={searchQuery}
+              onSearch={handleSearchChange}
+              onEdit={handleEdit}
+              onDelete={(deviceLog) => {
+                setLogToDelete(deviceLog);
+                setIsDeleteModalOpen(true);
+              }}
+              columns={[
+                {
+                  header: "Device Code",
+                  accessor: "device_code",
+                  render: (item) => (
+                    <span className="badge badge-warning">{item.device_code}</span>
+                  ),
+                },
+                {
+                  header: "Humidity",
+                  accessor: "humidity",
+                },
+                {
+                  header: "Temperature",
+                  accessor: "temperature",
+                },
+                {
+                  header: "Meta",
+                  accessor: "meta",
+                  render: (item) => JSON.stringify(item.meta),
+                },
+              ]}
+            />
           </div>
         </div>
         {isModalOpen && (

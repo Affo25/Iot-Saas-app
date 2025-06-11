@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import useCustomerStore from '../../store/customerStore';
-import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import useDeviceStore from "../../store/DeviceStore";
+import DataTable from '../../components/Tables/DataTable';
+import DeleteModal from '../../components/deleteModals/DeleteModal';
 
 
 
@@ -233,109 +234,47 @@ const currentCustomers = Array.isArray(filteredCustomers) && filteredCustomers.l
           </div>
         </div>
 
-        {/* Customers Table */}
+        {/* Devices Table */}
         <div className="row pt-3">
           <div className="col-12">
-            <div className="card card-bordered card-preview">
-              <div className="card-inner-group">
-                <div className="card-inner">
-                  <div className="card-title-group">
-                    <div className="card-title">
-                    <h5 className="title">
-                     Total Devices
-                     <span className="badge badge-info ml-2">
-                     {filteredCustomers.length}
-                     </span>
-                    </h5>
-                    </div>
-                    {/* Search and other controls... */}
-                    <div className="col-md-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search customers..."
-            value={searchQuery}
-             onChange={handleSearchChange}  // Update the search query
-          />
-        </div>
-                  </div>
-                </div>
-
-                <div className="card-inner p-0 table-responsive">
-  <table className="table table-hover nowrap align-middle dataTable-init">
-    <thead style={{ fontSize: "14px", fontWeight: 'bold' }} className="tb-tnx-head" id="datatable-default_wrapper">
-      <tr>
-        <th scope="col">#</th>
-        <th>Device Name</th>
-        <th>Device Code</th>
-        <th>Description</th>
-        <th>Status</th>
-        <th style={{ width: "14%" }} scope="col">Action</th>
-      </tr>
-    </thead>
-    <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
-      {loading ? (
-        <tr>
-          <td colSpan="6" className="text-center">
-            <span className="spinner-border text-secondary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </span>
-          </td>
-        </tr>
-      ) : filteredCustomers.length === 0 ? (
-        <tr>
-          <td colSpan="6" className="text-center">
-            No customers found. Add a new customer to get started.
-          </td>
-        </tr>
-      ) : currentCustomers.map((customer, index) => (
-        <tr key={customer._id}>
-          <td><b>{index + 1}</b></td>
-          <td>{customer.device_name}</td>
-          <td>{customer.device_code}</td>
-          <td>{customer.description}</td>
-          <td>
-            <span className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'primary' : 'danger'}`}>
-              {customer.status}
-            </span>
-          </td>
-          <td className="text-center">
-            <button className="btn btn-danger btn-sm ml-3" onClick={() => {
-              setCustomerToDelete(customer);
-              setIsDeleteModalOpen(true);
-            }}>
-              <span>Delete</span>
-            </button>
-            <button className="btn btn-primary btn-sm ml-1" onClick={() => handleEdit(customer)}>
-              <span>Edit</span>
-            </button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-
-  
-
-  {/* Pagination Component */}
-  <ReactPaginate
-    previousLabel={"Previous"}
-    nextLabel={"Next"}
-    pageCount={Math.ceil(filteredCustomers.length / customersPerPage)}
-    onPageChange={handlePageClick}
-    containerClassName={"pagination justify-content-end"}
-    pageClassName={"page-item"}
-    pageLinkClassName={"page-link"}
-    previousClassName={"page-item"}
-    previousLinkClassName={"page-link"}
-    nextClassName={"page-item"}
-    nextLinkClassName={"page-link"}
-    activeClassName={"active"}
-  />
-</div>
-
-              </div>
-            </div>
+            <DataTable
+              data={filteredCustomers}
+              loading={loading}
+              title="Total Devices"
+              searchPlaceholder="Search devices..."
+              emptyMessage="No devices found. Add a new device to get started."
+              itemsPerPage={customersPerPage}
+              searchQuery={searchQuery}
+              onSearch={handleSearchChange}
+              onEdit={handleEdit}
+              onDelete={(device) => {
+                setCustomerToDelete(device);
+                setIsDeleteModalOpen(true);
+              }}
+              columns={[
+                {
+                  header: "Device Name",
+                  accessor: "device_name",
+                },
+                {
+                  header: "Device Code",
+                  accessor: "device_code",
+                },
+                {
+                  header: "Description",
+                  accessor: "description",
+                },
+                {
+                  header: "Status",
+                  accessor: "status",
+                  render: (item) => (
+                    <span className={`badge badge-${item.status === 'Active' ? 'success' : item.status === 'Inactive' ? 'primary' : 'danger'}`}>
+                      {item.status}
+                    </span>
+                  ),
+                },
+              ]}
+            />
           </div>
         </div>
     

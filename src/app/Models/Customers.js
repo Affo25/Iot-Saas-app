@@ -1,5 +1,4 @@
 // models/Customer.js
-import { type } from 'jquery';
 import mongoose from 'mongoose';
 
 const customerSchema = new mongoose.Schema({

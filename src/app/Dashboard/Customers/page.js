@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import useCustomerStore from '../../store/customerStore';
-import ReactPaginate from "react-paginate";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import DataTable from '../../components/Tables/DataTable';
+import DeleteModal from '../../components/deleteModals/DeleteModal';
 
 function Page() {
   const {
@@ -29,35 +30,17 @@ function Page() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentCustomerId, setCurrentCustomerId] = useState(null);
   const [customerToDelete, setCustomerToDelete] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");  // State to hold the search query
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const customersPerPage = 5;
-  const [filteredCustomers, setFilteredCustomers] = useState(customers); // Track filtered customers
+  const [filteredCustomers, setFilteredCustomers] = useState(customers);
   const [formsData, setFormsData] = useState({
-    selectedDevices: [], // Ensure it's initialized as an empty array
-    // Other form fields...
+    selectedDevices: [],
   });
 
-
-  // Calculate the page range
-  const offset = currentPage * customersPerPage;
-  const currentCustomers = filteredCustomers.slice(offset, offset + customersPerPage);
-
-  const handlePageClick = (selected) => {
-    setCurrentPage(selected.selected);
-  };
-
-  const handleSearchChange = (e) => {
-    console.log(e.target.value);
-    setSearchQuery(e.target.value); // Update search query state
-  };
-   
-
-
-  const handleDelete = async (customerId) => {
+  const handleDelete = async (customer) => {
     try {
-      // Call deleteCustomer function from Zustand store
-      const success = await deleteCustomer(customerId);
+      const success = await deleteCustomer(customer._id);
       if (success) {
         setCloseDeleteModal();
         console.log('Customer deleted successfully');
@@ -86,7 +69,7 @@ function Page() {
       package_name: customer.package_name,
       package_expiry: new Date(customer.package_expiry),
       status: customer.status,
-      devices: selectedDevices  // ✅ Use updated selected devices directly
+      devices: selectedDevices
     });
   
     // Also update formsData for the checkboxes
@@ -101,25 +84,14 @@ function Page() {
     // Open the modal
     setIsModalOpen(true);
   };
-  
-
-
 
   useEffect(() => {
-    // Fetch customers when component mounts
-    
     fetchCustomers();
     fetchDevicesList();
-    
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openModal = () => {
     setIsModalOpen(true);
-  };
-
-  const openDeleteModal = () => {
-    setIsDeleteModalOpen(true);
   };
 
   const setCloseDeleteModal = () => {
@@ -127,9 +99,8 @@ function Page() {
     setCustomerToDelete(null);
   };
 
-  // Effect to update filtered customers whenever searchQuery changes
   useEffect(() => {
-    const query = searchQuery.toLowerCase(); // Lowercase search query
+    const query = searchQuery.toLowerCase();
     const updatedFilteredCustomers = customers.filter((customer) => {
       return (
         (customer.full_name?.toLowerCase().includes(query) ?? false) ||
@@ -139,8 +110,7 @@ function Page() {
         (customer.status?.toLowerCase().includes(query) ?? false)
       );
     });
-    console.log("Updated Filtered Customers:", updatedFilteredCustomers);
-    setFilteredCustomers(updatedFilteredCustomers); // Update the filtered customers
+    setFilteredCustomers(updatedFilteredCustomers);
   }, [searchQuery, customers]);
 
   const closeModal = () => {
@@ -148,7 +118,6 @@ function Page() {
     setIsEditMode(false);
     setCurrentCustomerId(null);
 
-    // Reset form data and errors when closing modal
     setFormData({
       full_name: '',
       email: '',
@@ -159,9 +128,8 @@ function Page() {
       devices: [],
     });
     
-    // Reset formsData state as well
     setFormsData({
-      selectedDevices: [], // Use selectedDevices to match the checkbox name
+      selectedDevices: [],
     });
     
     useCustomerStore.setState({ formErrors: {} });
@@ -171,8 +139,6 @@ function Page() {
     const { name, value } = e.target;
     setFormData({ [name]: value });
   };
-  
-
 
   const handleDateChange = (date) => {
     setFormData({ package_expiry: date });
@@ -181,24 +147,19 @@ function Page() {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    // Validate the form data
     if (!validateForm()) return;
   
     let success;
   
     try {
-      // Make a copy of the current form data
       const currentFormData = { ...formData };
       
-      // Always use the selectedDevices from formsData
       const selectedDevices = formsData.selectedDevices || [];
       console.log("Selected devices for submission:", selectedDevices);
       
-      // Handle customer update
       if (isEditMode && currentCustomerId) {
         console.log("Updating customer with ID:", currentCustomerId);
         
-        // Create the updated data with devices
         const updatedData = {
           ...currentFormData,
           devices: selectedDevices
@@ -207,10 +168,8 @@ function Page() {
         console.log("Sending update data:", updatedData);
         success = await updateCustomer(currentCustomerId, updatedData);
       } else {
-        // Handle adding a new customer
         console.log("Adding new customer");
   
-        // Create new customer data with devices
         const newCustomerData = {
           ...currentFormData,
           devices: selectedDevices
@@ -220,7 +179,6 @@ function Page() {
         success = await addCustomer(newCustomerData);
       }
   
-      // After a successful operation, close the modal
       if (success) {
         closeModal();
       } else {
@@ -230,7 +188,6 @@ function Page() {
       console.error("Error in handleSubmit:", error);
     }
   };
-  
 
   const handleInputChanges = (e) => {
     const { name, value, checked } = e.target;
@@ -239,16 +196,14 @@ function Page() {
   
     if (name === "selectedDevices") {
       const updatedSelectedDevices = checked
-        ? [...formsData.selectedDevices, value] // Add selected device
-        : formsData.selectedDevices.filter((device) => device !== value); // Remove unselected
+        ? [...formsData.selectedDevices, value]
+        : formsData.selectedDevices.filter((device) => device !== value);
   
-      // Update formsData state
       setFormsData((prev) => ({
         ...prev,
         selectedDevices: updatedSelectedDevices,
       }));
   
-      // Sync selected devices with formData.devices
       setFormData((prev) => ({
         ...prev,
         devices: updatedSelectedDevices,
@@ -259,7 +214,6 @@ function Page() {
         devices: updatedSelectedDevices,
       });
     } else {
-      // Handle other input fields
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -268,33 +222,32 @@ function Page() {
   };
 
   const exportJsonToExcel = async (jsonData, fileName = 'data.xlsx') => {
-     const workbook = new ExcelJS.Workbook();
-     const worksheet = workbook.addWorksheet('Sheet 1');
-   
-     const dataArray = Array.isArray(customers) ? customers : [customers];
-     if (dataArray.length === 0) return;
-   
-     const headers = Object.keys(dataArray[0]);
-     worksheet.columns = headers.map((key) => ({
-       header: key.toUpperCase(),
-       key,
-       width: 20,
-     }));
-   
-     dataArray.forEach((row) => worksheet.addRow(row));
-   
-     const buffer = await workbook.xlsx.writeBuffer();
-     const blob = new Blob([buffer], {
-       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-     });
-   
-     saveAs(blob, fileName);
-   };
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet 1');
+  
+    const dataArray = Array.isArray(customers) ? customers : [customers];
+    if (dataArray.length === 0) return;
+  
+    const headers = Object.keys(dataArray[0]);
+    worksheet.columns = headers.map((key) => ({
+      header: key.toUpperCase(),
+      key,
+      width: 20,
+    }));
+  
+    dataArray.forEach((row) => worksheet.addRow(row));
+  
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+  
+    saveAs(blob, fileName);
+  };
 
-  
-  
-  
-  
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   return (
     <div className="nk-content-body">
@@ -330,150 +283,85 @@ function Page() {
         {/* Customers Table */}
         <div className="row pt-3">
           <div className="col-12">
-            <div className="card card-bordered card-preview">
-              <div className="card-inner-group">
-                <div className="card-inner">
-                  <div className="card-title-group">
-                    <div className="card-title">
-                    <h5 className="title">
-                     Total Customers
-                     <span className="badge badge-info ml-2">
-                     {filteredCustomers.length}
-                     </span>
-                    </h5>
-                    </div>
-                    {/* Search and other controls... */}
-                    <div className="col-md-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search customers..."
-            value={searchQuery}
-             onChange={handleSearchChange}  // Update the search query
-          />
-        </div>
-                  </div>
-                </div>
-
-                <div className="card-inner p-0 table-responsive">
-                  <table className="table  table-hover nowrap  align-middle dataTable-init">
-                    <thead style={{fontSize:"14px",fontWeight:'bold'}} className="tb-tnx-head " id="datatable-default_wrapper">
-                      <tr>
-                        <th scope="col">#</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Contact</th>
-                        <th>Package</th>
-                        <th>Package Expiry</th>
-                        <th>Status</th>
-                        <th>Password</th>
-                        <th>Devices</th>
-                        <th>Login Time</th>
-                        <th style={{ width: "12%" }} scope="col">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody style={{ fontFamily: "Segoe UI" }} className="tb-tnx-body">
-                      {loading ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            <span className="spinner-border text-secondary" role="status">
-                              <span className="visually-hidden">Loading...</span>
-                            </span>
-                          </td>
-                        </tr>
-                      ) : filteredCustomers.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">
-                            No customers found. Add a new customer to get started.
-                          </td>
-                        </tr>
-                      ) : currentCustomers.map((customer, index) => (
-                        <tr key={customer._id}>
-                          <td><b>{index + 1}</b></td>
-                          <td>{customer.full_name}</td>
-                          <td>{customer.email}</td>
-                          <td>{customer.contact}</td>
-                          <td>
-                      <span 
-                        className={`badge badge-warning`}>
-                         {customer.package_name}
-                             </span>
-                          </td>
-                          <td>
-                      <span 
-                        className={`badge badge-danger`}>
-                         {new Date(customer.package_expiry).toLocaleDateString()}
-                             </span>
-                          </td>
-                          <td>
-                      <span 
-                        className={`badge badge-${customer.status === 'Active' ? 'success' : customer.status === 'Inactive' ? 'primary' : 'danger'}`}>
-                         {customer.status}
-                             </span>
-                          </td>
-                          <td>{customer.password}</td>
-                          <td>
-                      {customer.devices && customer.devices.length > 0 ? (
-                        <div>
-                          <span className="badge badge-secondary mb-1">
-                            {customer.devices.length} device(s)
-                          </span>
-                          <div style={{ fontSize: '0.8rem' }}>
-                            {customer.devices.map((device, idx) => (
-                              <div key={idx} className="text-muted">
-                                {device.device_name || (typeof device === 'string' ? device : 'Unknown')}
-                              </div>
-                            )).slice(0, 2)}
-                            {customer.devices.length > 2 && (
-                              <div className="text-muted">...</div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="badge badge-secondary">No devices</span>
-                      )}
-                          </td>
-                          <td>
-                      <span 
-                        className={`badge badge-info`}>
-                         {customer.login_time===null?"Not Logged In":customer.login_time}
-                             </span>
-                          </td>
-                          <td className="text-center">
-                            <button className="btn btn-danger btn btn-sm ml-3" onClick={() => {
-                              setCustomerToDelete(customer);
-                              setIsDeleteModalOpen(true);
-                            }}>
-                              <span>Delete</span>
-                            </button>
-                            <button className="btn btn-primary btn btn-sm ml-1" onClick={() => handleEdit(customer)}>
-                              <span>Edit</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                      }
-                    </tbody>
-                   
-                  </table>
-                    {/* Pagination Component */}
-      <ReactPaginate
-        previousLabel={"Previous"}
-        nextLabel={"Next"}
-        pageCount={Math.ceil(filteredCustomers.length / customersPerPage)}
-        onPageChange={handlePageClick}
-        containerClassName={"pagination justify-content-end"}
-        pageClassName={"page-item"}
-        pageLinkClassName={"page-link"}
-        previousClassName={"page-item"}
-        previousLinkClassName={"page-link"}
-        nextClassName={"page-item"}
-        nextLinkClassName={"page-link"}
-        activeClassName={"active"}
-      />
-                </div>
-              </div>
-            </div>
+            <DataTable
+              data={filteredCustomers}
+              loading={loading}
+              title="Total Customers"
+              searchPlaceholder="Search customers..."
+              emptyMessage="No customers found. Add a new customer to get started."
+              itemsPerPage={customersPerPage}
+              searchQuery={searchQuery}
+              onSearch={handleSearchChange}
+              onEdit={handleEdit}
+              onDelete={(customer) => {
+                setCustomerToDelete(customer);
+                setIsDeleteModalOpen(true);
+              }}
+              columns={[
+                {
+                  header: "Name",
+                  accessor: "full_name",
+                },
+                {
+                  header: "Email",
+                  accessor: "email",
+                },
+                {
+                  header: "Contact",
+                  accessor: "contact",
+                },
+                {
+                  header: "Package",
+                  accessor: "package_name",
+                  render: (item) => (
+                    <span className="badge badge-warning">{item.package_name}</span>
+                  ),
+                },
+                {
+                  header: "Package Expiry",
+                  accessor: "package_expiry",
+                  render: (item) => (
+                    <span className="badge badge-danger">
+                      {new Date(item.package_expiry).toLocaleDateString()}
+                    </span>
+                  ),
+                },
+                {
+                  header: "Status",
+                  accessor: "status",
+                  render: (item) => (
+                    <span className={`badge badge-${item.status === 'Active' ? 'success' : item.status === 'Inactive' ? 'primary' : 'danger'}`}>
+                      {item.status}
+                    </span>
+                  ),
+                },
+                {
+                  header: "Password",
+                  accessor: "password",
+                  render: (item) => (
+                    <span className="badge badge-info">{item.password}</span>
+                  ),
+                },
+                {
+                  header: "Devices",
+                  accessor: "devices",
+                  render: (item) => (
+                    <span className="badge badge-success">
+                      {item.devices ? item.devices.length : 0}
+                    </span>
+                  ),
+                },
+                {
+                  header: "Login Time",
+                  accessor: "login_time",
+                  render: (item) => (
+                    <span className="badge badge-primary">
+                      {item.login_time ? new Date(item.login_time).toLocaleString() : 'N/A'}
+                    </span>
+                  ),
+                },
+              ]}
+            />
           </div>
         </div>
     
@@ -507,7 +395,7 @@ function Page() {
                               type="text"
                               name="full_name"
                               className={`form-control form-control-lg ${formErrors.full_name ? 'is-invalid' : ''}`}
-                              placeholder="Enter Full Name"
+                              placeholder="Enter full name"
                               value={formData.full_name}
                               onChange={handleInputChange}
                             />
@@ -526,31 +414,12 @@ function Page() {
                               type="email"
                               name="email"
                               className={`form-control form-control-lg ${formErrors.email ? 'is-invalid' : ''}`}
-                              placeholder="Enter Email"
+                              placeholder="Enter email"
                               value={formData.email}
                               onChange={handleInputChange}
                             />
                             {formErrors.email && (
                               <div className="invalid-feedback">{formErrors.email}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Password</span></label>
-                          <div className="form-control-wrap">
-                            <input
-                              type="text"
-                              name="password"
-                              className={`form-control form-control-lg ${formErrors.password ? 'is-invalid' : ''}`}
-                              placeholder="Enter password"
-                              value={formData.password}
-                              onChange={handleInputChange}
-                            />
-                            {formErrors.password && (
-                              <div className="invalid-feedback">{formErrors.password}</div>
                             )}
                           </div>
                         </div>
@@ -564,7 +433,7 @@ function Page() {
                               type="text"
                               name="contact"
                               className={`form-control form-control-lg ${formErrors.contact ? 'is-invalid' : ''}`}
-                              placeholder="Enter Contact"
+                              placeholder="Enter contact"
                               value={formData.contact}
                               onChange={handleInputChange}
                             />
@@ -579,24 +448,39 @@ function Page() {
                         <div className="form-group mt-1">
                           <label className="form-label"><span>Package Name</span></label>
                           <div className="form-control-wrap">
-                            <select
+                            <input
+                              type="text"
                               name="package_name"
                               className={`form-control form-control-lg ${formErrors.package_name ? 'is-invalid' : ''}`}
+                              placeholder="Enter package name"
                               value={formData.package_name}
                               onChange={handleInputChange}
-                            >
-                              <option value="">Select Package</option>
-                              <option value="Basic">Basic</option>
-                              <option value="Standard">Standard</option>
-                              <option value="Premium">Premium</option>
-                            </select>
+                            />
                             {formErrors.package_name && (
                               <div className="invalid-feedback">{formErrors.package_name}</div>
                             )}
                           </div>
                         </div>
                       </div>
-                     
+                      
+                      <div className="col-md-6">
+                        <div className="form-group mt-1">
+                          <label className="form-label"><span>Package Expiry</span></label>
+                          <div className="form-control-wrap">
+                            <DatePicker
+                              selected={formData.package_expiry}
+                              onChange={handleDateChange}
+                              className={`form-control form-control-lg ${formErrors.package_expiry ? 'is-invalid' : ''}`}
+                              placeholderText="Select expiry date"
+                              dateFormat="MM/dd/yyyy"
+                            />
+                            {formErrors.package_expiry && (
+                              <div className="invalid-feedback">{formErrors.package_expiry}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="col-md-6">
                         <div className="form-group mt-1">
                           <label className="form-label"><span>Status</span></label>
@@ -610,7 +494,7 @@ function Page() {
                               <option value="">Select Status</option>
                               <option value="Active">Active</option>
                               <option value="Inactive">Inactive</option>
-                              <option value="Pending">Pending</option>
+                              <option value="Suspended">Suspended</option>
                             </select>
                             {formErrors.status && (
                               <div className="invalid-feedback">{formErrors.status}</div>
@@ -618,69 +502,47 @@ function Page() {
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Package Expiry</span></label>
+                      
+                      <div className="col-md-12 mt-3">
+                        <div className="form-group">
+                          <label className="form-label"><span>Devices</span></label>
                           <div className="form-control-wrap">
-                            <DatePicker
-                              selected={formData.package_expiry}
-                              onChange={handleDateChange}
-                              className={`form-control form-control-lg ${formErrors.package_expiry ? 'is-invalid' : ''}`}
-                              placeholderText="Select expiry date"
-                              dateFormat="MMMM d, yyyy"
-                              minDate={new Date()}
-                            />
-                            {formErrors.package_expiry && (
-                              <div className="invalid-feedback">{formErrors.package_expiry}</div>
-                            )}
+                            <div className="row">
+                              {devices && devices.map((device, index) => (
+                                <div key={index} className="col-md-3 mb-2">
+                                  <div className="custom-control custom-checkbox">
+                                    <input
+                                      type="checkbox"
+                                      className="custom-control-input"
+                                      id={`device-${index}`}
+                                      name="selectedDevices"
+                                      value={device.device_name}
+                                      checked={formsData.selectedDevices.includes(device.device_name)}
+                                      onChange={handleInputChanges}
+                                    />
+                                    <label className="custom-control-label" htmlFor={`device-${index}`}>
+                                      {device.device_name}
+                                    </label>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="form-group mt-1">
-                          <label className="form-label"><span>Select Devices to assign</span></label>
-                          <div className="form-control-wrap">
-                            {/* Dynamically render device checkboxes */}
-                            {devices.map((device) => (
-                              <div key={device.device_name} className="form-check">
-                                <input
-                                  type="checkbox"
-                                  name="selectedDevices"
-                                  value={device.device_name}
-                                  className={`form-check-input ${formErrors.selectedDevices ? 'is-invalid' : ''}`}
-                                  checked={formsData.selectedDevices && formsData.selectedDevices.includes(device.device_name)}
-                                  onChange={handleInputChanges}
-                                />
-                                <label className="form-check-label">
-                                  {device.device_name} {/* Or any other property of the device */}
-                                </label>
-                              </div>
-                            ))}
-                            {formErrors.selectedDevices && (
-                              <div className="invalid-feedback">{formErrors.selectedDevices}</div>
-                            )}
-                          </div>
-                        </div>
-</div>
-                 
-</div>
-                    
+                    </div>
                     <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>
                       <div className="col-md-9"></div>
                       <div className="col-md-3 text-right pt-2">
-                        <button 
-                          type="submit" 
-                          className="btn btn-primary w-100 justify-center"
-                          disabled={loading}
-                        >
+                        <button type="submit" className="btn btn-primary w-100 justify-center" disabled={loading}>
                           {loading ? (
-                           <div class="d-flex justify-content-center">
-                           <div class="spinner-border" role="status">
-                             <span class="sr-only">Loading...</span>
-                           </div>
-                         </div>
+                            <div className="d-flex justify-content-center">
+                              <div className="spinner-border" role="status">
+                                <span className="sr-only">Loading...</span>
+                              </div>
+                            </div>
                           ) : (
-                            <span>{isEditMode ? 'Update Customer' : 'Save Customer'}</span>
+                            <span>{isEditMode ? 'Update' : 'Save'}</span>
                           )}
                         </button>
                       </div>
@@ -691,64 +553,18 @@ function Page() {
             </div>
           </div>
         )}
-
-
-         {/* Delete Customer Modal */}
-         {isDeleteModalOpen && (
-          <div className="modal fade zoom show" style={{ display: "block" }}>
-            <div className="modal-dialog modal-sm" role="document">
-              <div className="modal-content">
-                <div className="modal-header bg-primary">
-                  <h5 className="modal-title text-white">
-                    <span>Delete Confirmtion</span>
-                  </h5>
-                
-                </div>
-                <form onSubmit={handleSubmit}>
-                  <div className="modal-body pt-3">
-                    {useCustomerStore.getState().error && (
-                      <div className="alert alert-danger">
-                        {useCustomerStore.getState().error}
-                      </div>
-                    )}
-                    
-                    <div className="row">
-                      <div className="col-md-12">
-                        <div className="form-group mt-1">
-                          <div className="form-control-wrap">
-                           <h5>Do You want to delete this customer?</h5>
-                          
-                          </div>
-                        </div>
-                      </div>         
-                    </div>
-                    <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>
-                   <div className="col-md-12"></div>
-                    <div className="col-md-9 text-right pt-2">
-                      <ul className="list-inline mb-0">
-                          <li className="list-inline-item mr-2">
-                        <button type="button" className="btn btn-primary w-100 justify-center" onClick={() => customerToDelete && handleDelete(customerToDelete._id)} disabled={loading || !customerToDelete}>
-                         <span>Yes</span>
-                           </button>
-                       </li>
-                           <li className="list-inline-item">
-                             <button type="button" className="btn btn-danger w-100 justify-center" onClick={setCloseDeleteModal}disabled={loading}>
-                               <span>No</span>
-                                 </button>
-      </li>
-    </ul>
-  </div>
-</div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
- 
-       
+        
+        {/* Delete Modal */}
+        <DeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={setCloseDeleteModal}
+          onConfirm={handleDelete}
+          title="Delete Confirmation"
+          message="Do you want to delete this customer?"
+          loading={loading}
+          itemToDelete={customerToDelete}
+        />
       </div>
-     
     </div>
   );
 }

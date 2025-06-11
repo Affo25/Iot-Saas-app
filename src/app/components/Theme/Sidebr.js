@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import useUserRoleStore from '../store/userRoleStore';
+import useUserRoleStore from '../../store/userRoleStore';
 import { usePathname, useRouter } from 'next/navigation';
 
 function Sidebr() {
@@ -13,17 +13,17 @@ function Sidebr() {
   const [loading, setLoading] = useState(false);
 
   const adminMenus = [
-    { menu_url: '/Dashboard', menu_title: 'Dashboard', icon: 'ni-dashlite' },
+    { menu_url: '/Dashboard', menu_title: 'Dashboard', icon: 'ni-home-fill' },
     { menu_url: '/Dashboard/Customers', menu_title: 'Customers', icon: 'ni-users' },
-    { menu_url: '/Dashboard/Device', menu_title: 'Devices', icon: 'ni-dashlite' },
-    { menu_url: '/Dashboard/DeviceLogs', menu_title: 'DeviceLogs', icon: 'ni-activity' },
-    { menu_url: '/Dashboard/CustomersDevice', menu_title: 'CustomersDevice', icon: 'ni-activity' },
+    { menu_url: '/Dashboard/Device', menu_title: 'Devices', icon: 'ni-bluetooth' },
+    { menu_url: '/Dashboard/DeviceLogs', menu_title: 'Device Logs', icon: 'ni-rss' },
+    { menu_url: '/Dashboard/CustomersDevice', menu_title: 'Customers Device', icon: 'ni-users-fill' },
     { menu_url: '/Dashboard/Reports', menu_title: 'Reports', icon: 'ni-report' },
   ];
 
   const customerMenus = [
-    { menu_url: '/Dashboard/page', menu_title: 'Dashboard', icon: 'ni-dashlite' },
-    { menu_url: '/Dashboard/CustomersDevice', menu_title: 'CustomersDevice', icon: 'ni-activity' },
+    { menu_url: '/Dashboard/page', menu_title: 'Dashboard', icon: 'ni-home-fill' },
+    { menu_url: '/Dashboard/CustomersDevice', menu_title: 'Customers Device', icon: 'ni-rss' },
     { menu_url: '/Dashboard/Reports', menu_title: 'Reports', icon: 'ni-report' },
   ];
 

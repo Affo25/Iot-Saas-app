@@ -2,13 +2,13 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import dynamic from "next/dynamic";
-import Sidebar from "../../app/components/Sidebr";
+import Sidebar from "../components/Theme/Sidebr";
 import { ToastProvider } from '../../app/providers/ToastProvider';
 import Script from "next/script";
-import Header from "../components/Headers";
+import Header from "../components/Theme/Headers";
 import { Inter } from "next/font/google";
 import { usePathname } from 'next/navigation';
-import Footers from "../components/Footers";
+import Footers from "../components/Theme/Footers";
 
 const BootstrapBundle = dynamic(() => import("bootstrap/dist/js/bootstrap.bundle.min.js"), { ssr: false });
 const Jquery = dynamic(() => import("jquery/dist/jquery.min.js"), { ssr: false });
