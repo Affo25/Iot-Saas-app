@@ -77,3 +77,12 @@ body {
 .app-name {
   animation: slideUp 1s ease-out 0.5s both;
 }
+
+.nprogress .bar {
+  background: #3b82f6; /* Tailwind blue-500 */
+  height: 4px;
+}
+.nprogress .peg {
+  box-shadow: 0 0 10px #3b82f6, 0 0 5px #3b82f6;
+}
+

@@ -6,19 +6,22 @@ import TopLoadingBar from '../app/components/loading';
 
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
+import { Providers } from './store/provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'IoT SaaS App',
-  description: 'Dashboard and management system',
+  description: 'IoT SaaS Application',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`bg-lighter npc-general has-sidebar ${inter.className}`}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <TopLoadingBar />
 
         {/* Scripts are okay here */}

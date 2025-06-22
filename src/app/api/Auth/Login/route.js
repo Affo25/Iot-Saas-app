@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import  connectToMongo  from '../../../lib/mongodb_connection';
+import connectToMongo from '../../../lib/mongodb_connection';
 import jwt from 'jsonwebtoken';
 import systemUsers from '../../../Models/systemUsers';
 
 export async function POST(request) {
   try {
     const dbInstance = await connectToMongo();
-
-
     const body = await request.json();
 
     if (!body.email || !body.password || !body.userRole) {
@@ -32,11 +30,9 @@ export async function POST(request) {
       );
     }
 
-    const { email, password,userRole } = body;
-    console.log("body data",body);
+    const { email, password, userRole } = body;
+    console.log("body data", body);
 
-    
-   
     // ✅ Check if systemUsers collection exists
     const db = dbInstance.connection.db; // now it's safe
     const collections = await db.listCollections().toArray();
@@ -49,12 +45,15 @@ export async function POST(request) {
       );
     }
 
-    const customer = await systemUsers.findOne({ email});
-   
+    // Find user with matching email and role
+    const customer = await systemUsers.findOne({ 
+      email: email,
+      userRole: userRole
+    });
 
     if (!customer) {
       return NextResponse.json(
-        { success: false, message: 'Invalid email or password' },
+        { success: false, message: 'Invalid email or password for this user type' },
         { status: 401 }
       );
     }
@@ -75,9 +74,9 @@ export async function POST(request) {
         role: customer.userRole,
       },
       process.env.JWT_SECRET || 'secret_key',
-      { expiresIn: '1d' , algorithm: 'HS256'}
+      { expiresIn: '1d', algorithm: 'HS256' }
     );
-    console.log("procees environment",process.env.JWT_SECRET);
+    console.log("process environment", process.env.JWT_SECRET);
 
     const customerObj = customer.toObject();
     const { password: _, ...customerWithoutPassword } = customerObj;
@@ -97,7 +96,7 @@ export async function POST(request) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 1 day
     });
-     console.log("Cookie set resposne",response);
+    console.log("Cookie set response", response);
     return response;
   } catch (error) {
     console.error('Login error:', error);

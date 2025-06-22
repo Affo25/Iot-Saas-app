@@ -1,5 +1,6 @@
 // models/Customer.js
 import mongoose from 'mongoose';
+import { any, array } from 'zod';
 
 const DeviceSchema = new mongoose.Schema({
     device_name: {
@@ -21,8 +22,15 @@ const DeviceSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['Active', 'Inactive'],
-    default: 'Active',
+    default: '',
   },
+
+  device_field: {
+     type: [String],
+     required: true,
+     default: []
+  },
+
   created_at: {
     type: Date,
     default: Date.now, // Automatically set on creation

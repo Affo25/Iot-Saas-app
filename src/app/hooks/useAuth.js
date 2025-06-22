@@ -27,12 +27,17 @@ export const useAuth = () => {
         if (data.success) {
           setIsAuthenticated(true);
           setUser(data.user);
+          if (data.user && data.user.userRole) {
+            localStorage.setItem('userRole', data.user.userRole);
+          }
         } else {
           localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
         }
       } catch (error) {
         console.error('Token verification failed:', error);
         localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
       } finally {
         setLoading(false);
       }
@@ -55,6 +60,7 @@ export const useAuth = () => {
 
       if (data.success) {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userRole', data.user.userRole);
         setUser(data.user);
         setIsAuthenticated(true);
 
@@ -70,6 +76,7 @@ export const useAuth = () => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
     setUser(null);
     setIsAuthenticated(false);
 

@@ -31,8 +31,8 @@ const customerSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Active', 'Inactive', 'Pending', 'Expired'],
-    default: 'Active',
+    enum: ['Active', 'Inactive'],
+    default: '',
   },
   password: {
     type: String,

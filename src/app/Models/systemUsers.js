@@ -21,7 +21,11 @@ const systemUsersSchema = new mongoose.Schema({
         minlength: 6,  // Ensures the password is at least 6 characters
         maxlength: 10,  // Ensures the password does not exceed 6 characters
     },
-
+    customer_id: {
+        type: String,
+        default: "No Customer",
+        required: false,
+    },
 
     created_at: {
         type: Date,
@@ -32,4 +36,9 @@ const systemUsersSchema = new mongoose.Schema({
     timestamps: false,
 });
 
-export default mongoose.models.systemUsers || mongoose.model('systemUsers', systemUsersSchema);
+// Clear the model if it exists to ensure schema changes are applied
+if (mongoose.models.systemUsers) {
+  delete mongoose.models.systemUsers;
+}
+
+export default mongoose.model('systemUsers', systemUsersSchema);

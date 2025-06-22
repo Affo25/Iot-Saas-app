@@ -1,37 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 const SplashScreen = () => {
-  const [fadeOut, setFadeOut] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    // Start fade out animation after 4.5 seconds
-    const fadeTimer = setTimeout(() => {
-      setFadeOut(true);
-    }, 10000);
-
-    // Redirect after 5 seconds
-    const redirectTimer = setTimeout(() => {
-      router.push('/Auth/Login');
-    }, 5000);
-
-    // Clean up timers if component unmounts
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(redirectTimer);
-    };
-  }, [router]);
-
   return (
-    <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
+    <div className="splash-screen">
       <div className="splash-content">
         <div className="logo-container">
           <Image
-            src="/images/logo.png"
+            src="/logo/auth-logo.svg"
             alt="IoT SaaS App Logo"
             width={300}
             height={100}
@@ -56,15 +34,11 @@ const SplashScreen = () => {
           justify-content: center;
           height: 100vh;
           width: 100%;
-          background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+          background: #0e1c4b;
           color: white;
           text-align: center;
           opacity: 1;
           transition: opacity 0.5s ease-out;
-        }
-        
-        .fade-out {
-          opacity: 0;
         }
         
         .splash-content {

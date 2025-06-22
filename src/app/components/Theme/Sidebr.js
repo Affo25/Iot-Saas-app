@@ -3,112 +3,115 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import useUserRoleStore from '../../store/userRoleStore';
 import { usePathname, useRouter } from 'next/navigation';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 function Sidebr() {
-  const role = useUserRoleStore((state) => state.role);
+  const [role, setRole] = useState('');
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
-  const adminMenus = [
-    { menu_url: '/Dashboard', menu_title: 'Dashboard', icon: 'ni-home-fill' },
-    { menu_url: '/Dashboard/Customers', menu_title: 'Customers', icon: 'ni-users' },
-    { menu_url: '/Dashboard/Device', menu_title: 'Devices', icon: 'ni-bluetooth' },
-    { menu_url: '/Dashboard/DeviceLogs', menu_title: 'Device Logs', icon: 'ni-rss' },
-    { menu_url: '/Dashboard/CustomersDevice', menu_title: 'Customers Device', icon: 'ni-users-fill' },
-    { menu_url: '/Dashboard/Reports', menu_title: 'Reports', icon: 'ni-report' },
+  const adminMenuItems = [
+    { menu_url: '/Pages', menu_title: 'Dashboard', icon: 'ni-home' },
+    { menu_url: '/Pages/customers', menu_title: 'Customers', icon: 'ni-users' },
+    { menu_url: '/Pages/device', menu_title: 'Devices', icon: 'ni-bluetooth' },
+    { menu_url: '/Pages/devicelogs', menu_title: 'Log History', icon: 'ni-rss' },
   ];
 
-  const customerMenus = [
-    { menu_url: '/Dashboard/page', menu_title: 'Dashboard', icon: 'ni-home-fill' },
-    { menu_url: '/Dashboard/CustomersDevice', menu_title: 'Customers Device', icon: 'ni-rss' },
-    { menu_url: '/Dashboard/Reports', menu_title: 'Reports', icon: 'ni-report' },
+  const customerMenuItems = [
+    { menu_url: '/Pages/customersdevice', menu_title: 'Customer Devices', icon: 'ni-devices' },
+    { menu_url: '/Pages/devicelogs', menu_title: 'Log History', icon: 'ni-rss' },
   ];
 
-  const menuList = role === 'Admin' ? adminMenus : customerMenus;
-
-  // Show loading bar on pathname change
   useEffect(() => {
-    if (pathname) {
-      setLoading(true);
-      const timer = setTimeout(() => setLoading(false), 400);
-      return () => clearTimeout(timer);
+    if (typeof window !== 'undefined') {
+      const storedRole = localStorage.getItem('userRole');
+      if (storedRole) setRole(storedRole);
     }
-  }, [pathname]);
+  }, []);
 
-   return (
-      <>
-        {loading && (
-          <div className="fixed top-0 left-0 right-0 h-[3px] bg-blue-500 z-[9999] animate-pulse transition-all duration-300" />
-        )}
-  
-        <div className="nk-sidebar nk-sidebar-fixed is-light" data-content="sidebarMenu">
-          <div className="nk-sidebar-element nk-sidebar-head">
-            <div className="nk-sidebar-brand">
-              <Link href="/Dashboard" className="logo-link nk-sidebar-logo">
-                <Image
-                  className="logo-light logo-img"
-                  src="/images/logo.png"
-                  alt="logo"
-                  width={100}
-                  height={50}
-                  srcSet="/images/logo2x.png 2x"
-                />
-                <img
-                  className="logo-dark logo-img"
-                  src="/images/logo-dark.png"
-                  srcSet="/images/logo-dark2x.png 2x"
-                  alt="logo-dark"
-                />
-                <span className="nio-version">QRCode Generator</span>
-              </Link>
-            </div>
-            <div className="nk-menu-trigger mr-n2">
-              <Link
-                href="#"
-                className="nk-nav-toggle nk-quick-nav-icon d-xl-none"
-                data-target="sidebarMenu"
-              >
-                <em className="icon ni ni-arrow-left"></em>
-              </Link>
-            </div>
-          </div>
-  
-          <div className="nk-sidebar-element">
-            <div className="nk-sidebar-content">
-              <div className="nk-sidebar-menu" data-simplebar>
-              <ul className="nk-menu">
-    {menuList.map((menu, index) => {
-      const isActive = pathname === menu.menu_url;
-      return (
-        <li
-          key={index}
-          className={`nk-menu-item ${isActive ? 'active' : ''}`}
-        >
-         <Link
-            href={menu.menu_url}
-            className={`nk-menu-link block px-4 py-2 mx-2 rounded-md transition-colors duration-200 ${
-              isActive ? 'bg-primary text-white font-bold' : 'hover:bg-gray-100 text-gray-700'
-            }`}
-          >
-            <span className="nk-menu-icon">
-              <em className={`icon ni ${menu.icon}`}></em>
-            </span>
-            <span className="nk-menu-text">{menu.menu_title}</span>
+  const handleNavigate = (menu_url) => {
+    if (pathname === menu_url) return;
+
+    NProgress.start();
+    setTimeout(() => NProgress.set(0.1), 200);
+    setTimeout(() => NProgress.set(0.3), 200);
+    setTimeout(() => NProgress.set(0.7), 200);
+    setTimeout(() => NProgress.set(0.7), 200);
+    setTimeout(() => NProgress.set(0.9), 200);
+    setTimeout(() => NProgress.set(1.0), 200);
+    setTimeout(() => {
+      router.push(menu_url);
+      NProgress.done();
+    }, 400);
+  };
+
+  return (
+    <div className="nk-sidebar nk-sidebar-fixed is-light" data-content="sidebarMenu">
+      <div className="nk-sidebar-element nk-sidebar-head">
+        <div className="nk-sidebar-brand">
+          <Link href="/Pages" className="logo-link nk-sidebar-logo">
+            <Image
+              className="logo-light logo-img"
+              src="/images/logo.png"
+              alt="logo"
+              width={100}
+              height={50}
+            />
+            <img
+              className="logo-dark logo-img"
+              src="/images/logo-dark.png"
+              alt="logo-dark"
+            />
+            <span className="nio-version">QRCode Generator</span>
           </Link>
-        </li>
-      );
-    })}
-  </ul>
-  
-              </div>
-            </div>  
+        </div>
+        <div className="nk-menu-trigger mr-n2">
+          <Link href="#" className="nk-nav-toggle nk-quick-nav-icon d-xl-none" data-target="sidebarMenu">
+            <em className="icon ni ni-arrow-left"></em>
+          </Link>
+        </div>
+      </div>
+
+      <div className="nk-sidebar-element">
+        <div className="nk-sidebar-content">
+          <div className="nk-sidebar-menu" data-simplebar>
+            <ul className="nk-menu">
+              {role ? (
+                (role === 'Customer' ? customerMenuItems : adminMenuItems).map((menu, index) => {
+                  const isActive = pathname === menu.menu_url;
+                  return (
+                    <li key={index} className={`nk-menu-item ${isActive ? 'active' : ''}`}>
+                      <button
+                        onClick={() => handleNavigate(menu.menu_url)}
+                        className={`w-full text-left nk-menu-link px-4 py-2 mx-2 rounded-lg transition-all duration-200 ${
+                          isActive
+                            ? 'bg-primary text-white font-semibold pl-6 pr-4'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        <span className="nk-menu-icon">
+                          <em className={`icon ni ${menu.icon}`}></em>
+                        </span>
+                        <span className="nk-menu-text">{menu.menu_title}</span>
+                      </button>
+                    </li>
+                  );
+                })
+              ) : (
+                <li className="nk-menu-item">
+                  <div className="nk-menu-link block px-4 py-2 mx-2 text-gray-500">
+                    <span className="nk-menu-text">Loading menu...</span>
+                  </div>
+                </li>
+              )}
+            </ul>
           </div>
         </div>
-      </>
-    );
+      </div>
+    </div>
+  );
 }
 
 export default Sidebr;
