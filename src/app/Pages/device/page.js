@@ -298,53 +298,7 @@ function Page() {
                     </span>
                   ),
                 },
-                {
-                  header: "Reports",
-                  accessor: "device_code",
-                  render: (value, item) => (
-                    <div className="dropdown">
-                      <button 
-                        className="btn btn-sm btn-outline-primary dropdown-toggle" 
-                        type="button" 
-                        id={`reportsDropdown-${item._id}`}
-                        data-bs-toggle="dropdown" 
-                        aria-expanded="false"
-                      >
-                        <em className="icon ni ni-bar-chart"></em>
-                        Reports
-                      </button>
-                      <ul className="dropdown-menu" aria-labelledby={`reportsDropdown-${item._id}`}>
-                        <li>
-                          <button 
-                            className="dropdown-item" 
-                            onClick={() => router.push(`/Pages/reports/temperature-humidity?deviceCode=${value}`)}
-                          >
-                            <em className="icon ni ni-thermometer"></em>
-                            Temperature & Humidity
-                          </button>
-                        </li>
-                        <li>
-                          <button 
-                            className="dropdown-item" 
-                            onClick={() => router.push(`/Pages/reports/device-performance?deviceCode=${value}`)}
-                          >
-                            <em className="icon ni ni-activity"></em>
-                            Device Performance
-                          </button>
-                        </li>
-                        <li>
-                          <button 
-                            className="dropdown-item" 
-                            onClick={() => router.push(`/Pages/reports/activity-logs?deviceCode=${value}`)}
-                          >
-                            <em className="icon ni ni-list-check"></em>
-                            Activity Logs
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                  ),
-                },
+               
               ]}
             />
           </div>
