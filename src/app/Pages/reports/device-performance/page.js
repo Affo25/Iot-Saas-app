@@ -23,7 +23,7 @@ import {
   Radar,
   ComposedChart
 } from 'recharts';
-import { fetchDeviceLogsByDeviceCode } from '../../../store/slices/deviceLogSlice';
+import { fetchDeviceLogsBySerialCode } from '../../../store/slices/deviceLogSlice';
 import DataTable from '../../../components/Tables/DataTable';
 import ThemeButton from "../../../components/Theme/dynamicButton";
 import ExcelJS from 'exceljs';
@@ -32,7 +32,7 @@ import { saveAs } from 'file-saver';
 function DevicePerformanceReport() {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
-  const deviceCode = searchParams.get('deviceCode');
+  const deviceCode = searchParams.get('serialCode');
   
   const { deviceLogs, loading, error } = useSelector((state) => state.deviceLog);
   
@@ -45,7 +45,7 @@ function DevicePerformanceReport() {
 
   useEffect(() => {
     if (deviceCode) {
-      dispatch(fetchDeviceLogsByDeviceCode(deviceCode));
+      dispatch(fetchDeviceLogsBySerialCode(deviceCode));
     }
   }, [dispatch, deviceCode]);
 
@@ -292,7 +292,7 @@ function DevicePerformanceReport() {
           <div className="nk-block-head-content">
             <h3 className="nk-block-title page-title">Device Performance Report</h3>
             <div className="nk-block-des text-soft">
-              <p>Device: <strong>{deviceCode}</strong> | Comprehensive performance analysis and metrics</p>
+              <p>Serial Code: <strong>{deviceCode}</strong> | Comprehensive performance analysis and metrics</p>
             </div>
           </div>
           <div className="nk-block-head-content">
@@ -550,7 +550,7 @@ function DevicePerformanceReport() {
               showInfoColumn={false}
               showActions={false}
               tableName="DevicePerformanceLog"
-              searchableFields={['device_code', 'temperature', 'humidity', 'created_at']}
+              searchableFields={['device_code', 'temperature', 'humidity', 'created_at', 'meta']}
               columns={[
                 {
                   header: "Date",
@@ -579,8 +579,8 @@ function DevicePerformanceReport() {
                   },
                 },
                 {
-                  header: "Device Code",
-                  accessor: "device_code",
+                  header: "Serial Code",
+                  accessor: "serial_code",
                   render: (value) => (
                     <span className="badge badge-warning">{value}</span>
                   ),
@@ -598,6 +598,31 @@ function DevicePerformanceReport() {
                   render: (value) => (
                     <span className="text-info">{value !== null && value !== undefined ? value : 'N/A'}%</span>
                   ),
+                },
+                {
+                  header: "Meta Data",
+                  accessor: "meta",
+                  render: (value) => {
+                    if (!value || Object.keys(value).length === 0) {
+                      return <span className="badge badge-secondary">No Data</span>;
+                    }
+                    
+                    // Convert meta object to badges
+                    const metaEntries = Object.entries(value);
+                    return (
+                      <div className="d-flex flex-wrap gap-1">
+                        {metaEntries.map(([key, val], index) => (
+                          <span 
+                            key={index} 
+                            className="badge badge-outline-success"
+                            title={`${key}: ${val}`}
+                          >
+                            {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  },
                 },
                 {
                   header: "Data Quality",

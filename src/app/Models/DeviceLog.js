@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 const deviceLogSchema = new mongoose.Schema({
-  device_code: {
+  serial_code: {
     type: String,
     required: true,
     trim: true,

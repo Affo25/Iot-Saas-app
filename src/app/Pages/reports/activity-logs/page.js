@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'next/navigation';
@@ -22,7 +23,7 @@ import {
   ScatterChart,
   Scatter
 } from 'recharts';
-import { fetchDeviceLogsByDeviceCode } from '../../../store/slices/deviceLogSlice';
+import { fetchDeviceLogsBySerialCode } from '../../../store/slices/deviceLogSlice';
 import DataTable from '../../../components/Tables/DataTable';
 import ThemeButton from "../../../components/Theme/dynamicButton";
 import ExcelJS from 'exceljs';
@@ -46,7 +47,7 @@ function ActivityLogsReport() {
 
   useEffect(() => {
     if (deviceCode) {
-      dispatch(fetchDeviceLogsByDeviceCode(deviceCode));
+      dispatch(fetchDeviceLogsBySerialCode(deviceCode));
     }
   }, [dispatch, deviceCode]);
 
@@ -319,7 +320,7 @@ function ActivityLogsReport() {
           <div className="nk-block-head-content">
             <h3 className="nk-block-title page-title">Activity Logs Report</h3>
             <div className="nk-block-des text-soft">
-              <p>Device: <strong>{deviceCode}</strong> | Comprehensive activity analysis and patterns</p>
+              <p>Serial Code: <strong>{deviceCode}</strong> | Comprehensive activity analysis and patterns</p>
             </div>
           </div>
           <div className="nk-block-head-content">

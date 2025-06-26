@@ -20,6 +20,7 @@ function Sidebr() {
   ];
 
   const customerMenuItems = [
+    { menu_url: '/Pages', menu_title: 'Dashboard', icon: 'ni-home' },
     { menu_url: '/Pages/customersdevice', menu_title: 'Customer Devices', icon: 'ni-devices' },
     { menu_url: '/Pages/devicelogs', menu_title: 'Log History', icon: 'ni-rss' },
   ];
@@ -35,16 +36,16 @@ function Sidebr() {
     if (pathname === menu_url) return;
 
     NProgress.start();
-    setTimeout(() => NProgress.set(0.1), 200);
-    setTimeout(() => NProgress.set(0.3), 200);
-    setTimeout(() => NProgress.set(0.7), 200);
-    setTimeout(() => NProgress.set(0.7), 200);
-    setTimeout(() => NProgress.set(0.9), 200);
-    setTimeout(() => NProgress.set(1.0), 200);
+    // setTimeout(() => NProgress.set(0.1), 200);
+    // setTimeout(() => NProgress.set(0.3), 200);
+    // setTimeout(() => NProgress.set(0.7), 200);
+    // setTimeout(() => NProgress.set(0.7), 200);
+    // setTimeout(() => NProgress.set(0.9), 200);
+    // setTimeout(() => NProgress.set(1.0), 200);
     setTimeout(() => {
       router.push(menu_url);
       NProgress.done();
-    }, 400);
+    }, 10000);
   };
 
   return (

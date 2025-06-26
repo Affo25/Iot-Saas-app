@@ -51,7 +51,7 @@ const handleNavigate = (item) => {
   }
   
   // Fix: Use customer_id parameter instead of id
-  router.push(`/Pages/customersdevice?customer_id=${customerId}`);
+  router.push(`/Pages/admincustomerDevices?customer_id=${customerId}`);
 };
 
   // Filter data based on search query
@@ -383,3 +383,4 @@ const handleNavigate = (item) => {
 }
 
 export default DataTable;
+

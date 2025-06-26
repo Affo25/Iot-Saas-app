@@ -1,5 +1,4 @@
 "use client";
-"use client";
 /**
  * Customer Device Management Page
  * 
@@ -23,9 +22,6 @@ import DataTable from '../../components/Tables/DataTable';
 import DeleteModal from '../../components/deleteModals/DeleteModal';
 import BulkDeleteModal from '../../components/deleteModals/BulkDeleteModal';
 import ThemeButton from "../../components/Theme/dynamicButton";
-import NProgress from 'nprogress';
-import 'nprogress/nprogress.css';
-
 import {
   fetchCustomerDevices,
   addCustomerDevice,
@@ -48,12 +44,6 @@ function Page() {
   const { customers, loading: customersLoading } = useSelector((state) => state.customer);
   const { devices, loading: devicesLoading } = useSelector((state) => state.device);
   const { user, customer, loading: authLoading } = useSelector((state) => state.auth);
-
-  // Get user details from localStorage
-  const [currentUser, setCurrentUser] = useState(null);
-  const [customerId, setCustomerId] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [customerRecord, setCustomerRecord] = useState(null);
 
   // Extract customer_id from search params (for admin) or get from logged-in user (for customer)
   const urlCustomerId = searchParams.get('customer_id');
@@ -86,66 +76,20 @@ function Page() {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  // Get user details from localStorage on component mount
+  // Check for customer_id in URL params and redirect if missing
   useEffect(() => {
-    const getUserFromStorage = () => {
-      try {
-        const userStr = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
-
-        if (userStr && token) {
-          const userData = JSON.parse(userStr);
-          setCurrentUser(userData);
-          setUserRole(userData.userRole);
-
-          // If user is a customer, use their customer_id to fetch customer record
-          if (userData.userRole === 'Customer') {
-            const customerIdFromUser = userData.customer_id;
-            setCustomerId(customerIdFromUser);
-            setFormData(prev => ({
-              ...prev,
-              customer_id: customerIdFromUser
-            }));
-
-            // Fetch the actual customer record to get devices
-            if (customerIdFromUser && customerIdFromUser !== "No Customer") {
-              fetchCustomerRecord(customerIdFromUser);
-            }
-          } else if (userData.userRole === 'Admin' && urlCustomerId) {
-            // If user is admin and customer_id is in URL, use that
-            setCustomerId(urlCustomerId);
-            setFormData(prev => ({
-              ...prev,
-              customer_id: urlCustomerId
-            }));
-          } else if (userData.userRole === 'Admin' && !urlCustomerId) {
-            // If admin but no customer_id in URL, redirect to customers page
-            router.push('/Pages/customers');
-            return;
-          }
-        } else {
-          // No user data in localStorage, redirect to login
-          router.push('/Pages/Auth/Login');
-          return;
-        }
-      } catch (error) {
-        console.error('Error parsing user data from localStorage:', error);
-        router.push('/Pages/Auth/Login');
-        return;
-      }
-    };
-
-    getUserFromStorage();
-  }, [urlCustomerId, router]);
-
-  // Check for customer_id and redirect if missing (for admin)
-  useEffect(() => {
-    if (userRole === 'Admin' && !urlCustomerId) {
-      // If admin but no customer_id, redirect back to customers page
+    if (!urlCustomerId) {
+      // If no customer_id, redirect back to customers page
       router.push('/Pages/customers');
       return;
     }
-  }, [userRole, urlCustomerId, router]);
+
+    // Set the customer_id in form data
+    setFormData(prev => ({
+      ...prev,
+      customer_id: urlCustomerId
+    }));
+  }, [urlCustomerId, router]);
 
   // Add error effect
   useEffect(() => {
@@ -157,37 +101,20 @@ function Page() {
 
   // Fetch data only if customerId exists
   useEffect(() => {
-    if (customerId) {
-      dispatch(fetchCustomerDevices(customerId));
+    if (urlCustomerId) {
+      dispatch(fetchCustomerDevices(urlCustomerId));
       dispatch(fetchCustomers());
       dispatch(fetchDevices());
     }
-  }, [dispatch, customerId]);
+  }, [dispatch, urlCustomerId]);
 
   // Effect to handle success state and refetch customer devices
   useEffect(() => {
-    if (success && customerId) {
-      dispatch(fetchCustomerDevices(customerId));
+    if (success && urlCustomerId) {
+      dispatch(fetchCustomerDevices(urlCustomerId));
       dispatch(resetState());
     }
-  }, [success, dispatch, customerId]);
-
-  // Function to fetch customer record
-  const fetchCustomerRecord = async (customerId) => {
-    try {
-      const response = await fetch(`/api/Dashboard/CustomerRecord?customer_id=${customerId}`);
-      const data = await response.json();
-
-      if (data.success && data.data.customer) {
-        setCustomerRecord(data.data.customer);
-        console.log('Customer record fetched:', data.data.customer);
-      } else {
-        console.error('Failed to fetch customer record:', data.message);
-      }
-    } catch (error) {
-      console.error('Error fetching customer record:', error);
-    }
-  };
+  }, [success, dispatch, urlCustomerId]);
 
   const validateForm = () => {
     const errors = {};
@@ -296,7 +223,7 @@ function Page() {
 
       if (result) {
         closeModal();
-        dispatch(fetchCustomerDevices(customerId));
+        dispatch(fetchCustomerDevices(urlCustomerId));
         toast.success(isEditMode ? 'Customer device updated successfully' : 'Customer device added successfully');
       } else {
         toast.error('Operation failed');
@@ -309,47 +236,15 @@ function Page() {
 
   // Get customer name for display
   const getCurrentCustomerName = () => {
-    if (!customerId) return 'Unknown Customer';
-
-    // If current user is a customer, use their name
-    if (userRole === 'Customer' && currentUser) {
-      return currentUser.full_name || currentUser.email || 'Current Customer';
-    }
-
-    // If admin, find customer from customers list
-    const customer = customers.find(c => c._id === customerId);
+    if (!urlCustomerId) return 'Unknown Customer';
+    const customer = customers.find(c => c._id === urlCustomerId);
     return customer ? customer.full_name : 'Unknown Customer';
   };
 
   // Get current customer details
   const getCurrentCustomer = () => {
-    if (!customerId) return null;
-
-    // If current user is a customer, return the customer record
-    if (userRole === 'Customer' && customerRecord) {
-      return customerRecord;
-    }
-
-    // If admin, find customer from customers list
-    return customers.find(c => c._id === customerId);
-  };
-
-  // Get customer display name safely
-  const getCustomerDisplayName = () => {
-    const customer = getCurrentCustomer();
-    if (!customer) return 'Unknown Customer';
-
-    // Try different possible name fields
-    return customer.full_name || customer.name || customer.email || 'Unknown Customer';
-  };
-
-  // Get customer initial for avatar
-  const getCustomerInitial = () => {
-    const customer = getCurrentCustomer();
-    if (!customer) return '?';
-
-    const name = customer.full_name || customer.name || customer.email || '';
-    return name.charAt(0).toUpperCase() || '?';
+    if (!urlCustomerId) return null;
+    return customers.find(c => c._id === urlCustomerId);
   };
 
   // Get devices available for assignment (not already assigned to this customer)
@@ -357,7 +252,7 @@ function Page() {
     if (!devices || !customerDevices) return [];
 
     const assignedDeviceCodes = customerDevices
-      .filter(cd => cd.customer_id === customerId)
+      .filter(cd => cd.customer_id === urlCustomerId)
       .map(cd => cd.device_code);
 
     return devices.filter(device => !assignedDeviceCodes.includes(device.device_code));
@@ -369,42 +264,18 @@ function Page() {
   };
 
   const filteredCustomerDevices = customerDevices.filter(
-    (device) => device.customer_id === customerId
+    (device) => device.customer_id === urlCustomerId
   );
 
-  const reportPageNavigation = async (code, deviceCodes) => {
-    console.log("code", code);
-
-    try {
-      // Start the loading bar
-      NProgress.start();
-
-      // Navigate based on device code
-      let targetUrl;
-      if (deviceCodes === "WTL01") {
-        targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
-      } else if (deviceCodes === "WCS4-01") {
-        targetUrl = `/Pages/reports/device-performance?serialCode=${code}&&deviceCode=${deviceCodes}`;
-      } else if(deviceCodes==="WCS4-02"){
-        targetUrl = `/Pages/reports/activity-logs?serialCode=${code}&&deviceCode=${deviceCodes}`;
-      }
-
-      console.log('Navigating to:', targetUrl);
-
-      // Use await to ensure navigation completes
-      await router.push(targetUrl);
-
-      // Complete the loading bar after navigation
-      setTimeout(() => {
-        NProgress.done();
-      }, 5000);
-
-    } catch (error) {
-      console.error('Navigation error:', error);
-      NProgress.done();
-      toast.error('Failed to navigate to report page');
+  const reportPageNavigation=(code,deviceCodes)=>{
+    if (deviceCodes==="WTL01") {
+      router.push(`/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`)
+    } else if (deviceCodes==="WCS4-01") {
+      router.push(`/Pages/reports/device-performance?serialCode=${code}&&deviceCode=${deviceCodes}`)
+    }else if(deviceCodes==="WCS4-02"){
+    router.push(`/Pages/reports/activity-logs?serialCode=${code}&&deviceCode=${deviceCodes}`)
     }
-  };
+  }
 
   // Define columns for DataTable
   const columns = [
@@ -434,7 +305,7 @@ function Page() {
           </div>
           {/* Title, Device Code, Serial Number */}
           <div>
-            <div className="font-weight-bold text-primary">{item.title.toUpperCase()}</div>
+            <div className="font-weight-bold text-primary">{item.title}</div>
             <div className="text-muted small">
               <span className="badge badge-info mr-1">{item.device_code}</span>
               <span className="badge badge-light">{item.device_serial_number}</span>
@@ -449,7 +320,7 @@ function Page() {
       render: (value, item) => {
         const description = item.description || '';
         const truncatedDesc = description.length > 30 ? description.substring(0, 30) + '...' : description;
-
+        
         return (
           <div className="device-details">
             {/* Status Badge */}
@@ -458,16 +329,16 @@ function Page() {
                 {item.status === 1 ? "Active" : item.status === 0 ? "Inactive" : item.status}
               </span>
             </div>
-
+            
             {/* Description with Popup */}
             {description && (
-              <div
+              <div 
                 className="position-relative d-inline-block mb-1"
                 style={{ maxWidth: '100%' }}
               >
-                <div
+                <div 
                   className="text-muted small"
-                  style={{
+                  style={{ 
                     cursor: description.length > 30 ? 'help' : 'default',
                     fontSize: '12px'
                   }}
@@ -492,7 +363,7 @@ function Page() {
                   📝 {truncatedDesc}
                 </div>
                 {description.length > 30 && (
-                  <div
+                  <div 
                     style={{
                       position: 'absolute',
                       top: '100%',
@@ -529,7 +400,7 @@ function Page() {
                 )}
               </div>
             )}
-
+            
             {/* Created Date */}
             <div className="text-muted" style={{ fontSize: '11px' }}>
               📅 {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', {
@@ -548,19 +419,19 @@ function Page() {
       accessor: "inputs",
       render: (value, item) => {
         const inputs = ["inp1", "inp2", "inp3", "inp4"];
-
+        
         return (
           <div className="input-controls d-flex flex-wrap">
             {inputs.map((inputKey, index) => {
               const inputValue = item[inputKey];
               const hasValue = inputValue && inputValue.trim() !== '';
-
+              
               return (
                 <button
                   key={inputKey}
                   className={`btn btn-xs mr-1 mb-1 ${hasValue ? 'btn-info' : 'btn-outline-secondary'}`}
-                  style={{
-                    fontSize: '10px',
+                  style={{ 
+                    fontSize: '10px', 
                     padding: '2px 6px',
                     minWidth: '35px',
                     opacity: hasValue ? 1 : 0.5
@@ -588,19 +459,19 @@ function Page() {
       accessor: "outputs",
       render: (value, item) => {
         const outputs = ["outp1", "outp2", "outp3", "outp4"];
-
+        
         return (
           <div className="output-controls d-flex flex-wrap">
             {outputs.map((outputKey, index) => {
               const outputValue = item[outputKey];
               const hasValue = outputValue && outputValue.trim() !== '';
-
+              
               return (
                 <button
                   key={outputKey}
                   className={`btn btn-xs mr-1 mb-1 ${hasValue ? 'btn-success' : 'btn-outline-secondary'}`}
-                  style={{
-                    fontSize: '10px',
+                  style={{ 
+                    fontSize: '10px', 
                     padding: '2px 6px',
                     minWidth: '35px',
                     opacity: hasValue ? 1 : 0.5
@@ -650,23 +521,23 @@ function Page() {
         );
       },
     },
-    {
-      header: "Reports",
-      accessor: "device_code",
-      render: (value, item) => (
-        <div className="button">
-          <button
-            onClick={() => reportPageNavigation(item.device_serial_number, item.device_code)}
-            className="btn btn-sm btn-outline-primary dropdown-toggle"
-            type="button"
-            id={`reportsDropdown-${item._id}`}
-          // data-bs-toggle="dropdown" 
-          // aria-expanded="false"ss
-          >
-            <em className="icon ni ni-bar-chart"></em>
-            Reports
-          </button>
-          {/* <ul className="dropdown-menu" aria-labelledby={`reportsDropdown-${item._id}`}>
+     {
+                  header: "Reports",
+                  accessor: "device_code",
+                  render: (value, item) => (  
+                    <div className="button">
+                      <button 
+                      onClick={()=>reportPageNavigation(item.device_serial_number,item.device_code)}
+                        className="btn btn-sm btn-outline-primary dropdown-toggle" 
+                        type="button" 
+                        id={`reportsDropdown-${item._id}`}
+                        // data-bs-toggle="dropdown" 
+                        // aria-expanded="false"ss
+                      >
+                        <em className="icon ni ni-bar-chart"></em>
+                        Reports
+                      </button>
+                      {/* <ul className="dropdown-menu" aria-labelledby={`reportsDropdown-${item._id}`}>
                         <li>
                           <button 
                             className="dropdown-item" 
@@ -695,9 +566,9 @@ function Page() {
                           </button>
                         </li>
                       </ul> */}
-        </div>
-      ),
-    },
+                    </div>
+                  ),
+                },
   ];
 
   const closeModal = () => {
@@ -705,7 +576,7 @@ function Page() {
     setIsEditMode(false);
     setCurrentCustomerDeviceId(null);
     setFormData({
-      customer_id: customerId || '',
+      customer_id: urlCustomerId || '',
       device_code: '',
       title: '',
       device_serial_number: '',
@@ -726,20 +597,6 @@ function Page() {
     setFormErrors({});
   };
 
-  // Show loading state while getting user data
-  if (!currentUser || !customerId) {
-    return (
-      <div className="nk-content-body">
-        <div className="d-flex align-items-center justify-content-center py-5">
-          <div className="spinner-border text-primary mr-2" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <span>Loading user information...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="nk-content-body">
       <div className="nk-block-head nk-block-head-sm p-0">
@@ -752,21 +609,27 @@ function Page() {
               <p>Manage and keep track of customer devices</p>
             </div>
             {/* Breadcrumb */}
-            {/* <nav aria-label="breadcrumb">
+            <nav aria-label="breadcrumb">
               <ol className="breadcrumb breadcrumb-arrow">
-                {userRole === 'Admin' && (
-                  <li className="breadcrumb-item">
-                    <a href="/Pages/customers" className="text-primary">Customers</a>
-                  </li>
-                )}
+                <li className="breadcrumb-item">
+                  <a href="/Pages/customers" className="text-primary">Customers</a>
+                </li>
                 <li className="breadcrumb-item active" aria-current="page">
-                  {getCustomerDisplayName()}
+                  {getCurrentCustomer() ? getCurrentCustomer().full_name : 'Customer Devices'}
                 </li>
               </ol>
-            </nav> */}
+            </nav>
           </div>
           <div className="nk-block-head-content">
             <ul className="nk-block-tools gx-3">
+              <li>
+                <ThemeButton
+                  color="btn-outline-light"
+                  onClick={() => router.push('/Pages/customers')}
+                  text="Back to Customers"
+                  icon="ni-arrow-left"
+                />
+              </li>
               <li>
                 <ThemeButton
                   color="btn-primary"
@@ -786,6 +649,62 @@ function Page() {
         </div>
       </div>
 
+      {/* Customer Information Card */}
+      {urlCustomerId && (
+        <div className="nk-block">
+          <div className="card card-bordered">
+            <div className="card-inner">
+              {customersLoading ? (
+                <div className="d-flex align-items-center justify-content-center py-3">
+                  <div className="spinner-border text-primary mr-2" role="status">
+                    <span className="sr-only">Loading...</span>
+                  </div>
+                  <span>Loading customer information...</span>
+                </div>
+              ) : getCurrentCustomer() ? (
+                <div className="d-flex align-items-center">
+                  <div className="user-avatar mr-3" style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: '#6576ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '24px',
+                    fontWeight: 'bold'
+                  }}>
+                    {getCurrentCustomer().full_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-grow-1">
+                    <h5 className="mb-1">{getCurrentCustomer().full_name}</h5>
+                    <div className="text-muted">
+                      <div><strong>Customer ID:</strong> {getCurrentCustomer()._id}</div>
+                      <div><strong>Email:</strong> {getCurrentCustomer().email || 'Not provided'}</div>
+                      {getCurrentCustomer().phone && (
+                        <div><strong>Phone:</strong> {getCurrentCustomer().phone}</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="badge badge-primary badge-lg">
+                      {filteredCustomerDevices.length} Device{filteredCustomerDevices.length !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-3">
+                  <div className="text-muted">
+                    <em className="icon ni ni-alert-circle" style={{ fontSize: '24px' }}></em>
+                    <div className="mt-2">Customer not found</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Data Table */}
       <div className="nk-block">
@@ -838,7 +757,7 @@ function Page() {
                   <span>
                     {isEditMode ? 'Edit Customer Device' : 'Add Customer Device'}
                     {getCurrentCustomer() && (
-                      <span className="ml-2">- {getCustomerDisplayName()}</span>
+                      <span className="ml-2">- {getCurrentCustomer().full_name}</span>
                     )}
                   </span>
                 </h5>
@@ -854,6 +773,36 @@ function Page() {
                     </div>
                   )}
 
+                  {/* Customer Information Display
+                  {getCurrentCustomer() && (
+                    <div className="alert alert-info mb-3">
+                      <div className="d-flex align-items-center">
+                        <div className="user-avatar mr-3" style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: '#6576ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '18px',
+                          fontWeight: 'bold'
+                        }}>
+                          {getCurrentCustomer().full_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-weight-bold">Selected Customer</div>
+                          <div className="text-muted small">
+                            <strong>ID:</strong> {getCurrentCustomer()._id}<br/>
+                            <strong>Name:</strong> {getCurrentCustomer().full_name}<br/>
+                            <strong>Email:</strong> {getCurrentCustomer().email || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )} */}
+
                   {/* Row 1: Customer and Device */}
                   <div className="row">
                     <div className="col-md-6">
@@ -865,7 +814,7 @@ function Page() {
                             className={`form-control form-control-lg ${formErrors.customer_id ? 'is-invalid' : ''}`}
                             value={formData.customer_id}
                             onChange={handleInputChange}
-                            disabled={userRole === 'Customer' || !!urlCustomerId} // Disable if customer or if customer_id is from URL
+                            disabled={!!urlCustomerId} // Disable if customer_id is from URL
                           >
                             <option value="">Select Customer</option>
                             {customers && customers.map(customer => (
@@ -923,6 +872,21 @@ function Page() {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="form-group mt-1">
+                        <label className="form-label"><span>Device Code</span></label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            name="device_code"
+                            className="form-control form-control-lg"
+                            placeholder="Enter device code"
+                            value={formData.device_code}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="form-group mt-1">
                         <label className="form-label"><span>Status</span></label>
                         <div className="form-control-wrap">
                           <select
@@ -938,7 +902,7 @@ function Page() {
                       </div>
                     </div>
                   </div>
-                  <div className="col-md-6">
+                  <div className="col-md-8">
                     <div className="form-group mt-1">
                       <label className="form-label"><span>Description</span></label>
                       <div className="form-control-wrap">
@@ -954,62 +918,60 @@ function Page() {
                     </div>
                   </div>
 
-                  <div className="row">
-                    <div className="col-md-8">
-                      <hr />
-                      <div className="form-group mt-1">
-                        <label className="form-label">
-                          <strong>Assigned Devices</strong>
-                        </label>
-                        <div
-                          className="device-checkbox-list"
-                          style={{
-                            maxHeight: '150px',
-                            overflowY: 'auto',
-                            border: '1px solid #e5e9f2',
-                            borderRadius: '4px',
-                            padding: '10px',
-                          }}
-                        >
-                          {getCurrentCustomer() && Array.isArray(getCurrentCustomer().devices) && getCurrentCustomer().devices.length > 0 ? (
-                            getCurrentCustomer().devices.map((device, index) => (
-                              <div key={index} className="custom-control custom-radio mb-2">
-                                <input
-                                  type="radio"
-                                  className="custom-control-input"
-                                  name="deviceSelect"
-                                  id={`device-${index}`}
-                                  value={device}
-                                  checked={formData.device_code === device}
-                                  onChange={(e) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      device_code: e.target.value,
-                                    }))
-                                  }
-                                />
-                                <label className="custom-control-label" htmlFor={`device-${index}`}>
-                                  <span className="font-weight-medium">{device.toUpperCase()}</span>
-                                </label>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-muted text-center py-2">
-                              {userRole === 'Customer' ? 'No devices assigned to your account' : 'No devices found'}
-                            </p>
-                          )}
-                        </div>
+                <div className="row">
+  <div className="col-md-8">
+    <hr />
+    <div className="form-group mt-1">
+      <label className="form-label">
+        <strong>Assigned Devices</strong>
+      </label>
+      <div
+        className="device-checkbox-list"
+        style={{
+          maxHeight: '150px',
+          overflowY: 'auto',
+          border: '1px solid #e5e9f2',
+          borderRadius: '4px',
+          padding: '10px',
+        }}
+      >
+        {Array.isArray(getCurrentCustomer().devices) && getCurrentCustomer().devices.length > 0 ? (
+          getCurrentCustomer().devices.map((device, index) => (
+            <div key={index} className="custom-control custom-radio mb-2">
+              <input
+                type="radio"
+                className="custom-control-input"
+                name="deviceSelect"
+                id={`device-${index}`}
+                value={device}
+                checked={formData.device_code === device}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    device_code: e.target.value,
+                  }))
+                }
+              />
+              <label className="custom-control-label" htmlFor={`device-${index}`}>
+                <span className="font-weight-medium">{device.toUpperCase()}</span>
+              </label>
+            </div>
+          ))
+        ) : (
+          <p className="text-muted text-center py-2">No devices found</p>
+        )}
+      </div>
 
-                        {formData.device_code && (
-                          <div className="mt-2">
-                            <small className="text-success">
-                              <strong>Selected:</strong> {formData.device_code}
-                            </small>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+      {formData.device_code && (
+        <div className="mt-2">
+          <small className="text-success">
+            <strong>Selected:</strong> {formData.device_code}
+          </small>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
 
                   <div className="row mt-2" style={{ borderTop: "1px solid #ede8e8" }}>

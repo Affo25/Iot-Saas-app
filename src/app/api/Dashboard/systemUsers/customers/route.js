@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectToMongo from '../../../../lib/mongodb_connection';
 import systemUsers from '../../../../Models/systemUsers';
-
-// Utility to check API key
-function validateApiKey(request) {
-  const url = new URL(request.url);
-  const apiKey = url.searchParams.get('api_key');
-  return apiKey === process.env.API_KEY;
-}
+import { validateApiKey } from '../../../../lib/mongodb';
 
 export async function GET(request) {
   if (!validateApiKey(request)) {

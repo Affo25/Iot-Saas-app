@@ -1,68 +1,29 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const baseUrl = "/api/Dashboard/Devicelog";
-const enhancedBaseUrl = "/api/Dashboard/Devicelog/enhanced";
-
 // Async thunks
-export const fetchDeviceLogs = createAsyncThunk(
-  'deviceLog/fetchDeviceLogs',
-  async () => {
-    try {
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-      const response = await axios.get(`${baseUrl}?api_key=${apiKey}`);
-      console.log('DeviceLogs Response:', response.data); // Add logging
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to fetch device logs');
-      }
-      
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Error fetching device logs:', error);
-      
-      // Return empty array instead of throwing error to prevent app crash
-      if (error.response?.status === 401) {
-        console.warn('API key authentication failed, returning empty array');
-        return [];
-      }
-      
-      throw error;
-    }
-  }
-);
-
 export const fetchEnhancedDeviceLogs = createAsyncThunk(
   'deviceLog/fetchEnhancedDeviceLogs',
   async () => {
-    try {
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-      const response = await axios.get(`${enhancedBaseUrl}?api_key=${apiKey}`);
-      console.log('Enhanced DeviceLogs Response:', response.data);
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to fetch enhanced device logs');
-      }
-      
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Error fetching enhanced device logs:', error);
-      
-      if (error.response?.status === 401) {
-        console.warn('API key authentication failed, returning empty array');
-        return [];
-      }
-      
-      throw error;
-    }
+    const response = await axios.get('/api/Dashboard/Devicelog/enhanced');
+    return response.data.deviceLogs;
+  }
+);
+
+export const fetchDeviceLogsBySerialCode = createAsyncThunk(
+  'deviceLog/fetchDeviceLogsBySerialCode',
+  async (serialCode) => {
+    console.log("serialCode in slice file",serialCode);
+    const response = await axios.get(`/api/Dashboard/Devicelog/filter?serialCode=${serialCode}`);
+    console.log("response from api",JSON.stringify(response.data.deviceLogs));
+    return response.data.deviceLogs;
   }
 );
 
 export const addDeviceLog = createAsyncThunk(
   'deviceLog/addDeviceLog',
   async (dataToSend) => {
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY || 'test-api-key-123';
-    const response = await axios.post(`${baseUrl}?api_key=${apiKey}`, dataToSend);
+    const response = await axios.post('/api/Dashboard/Devicelog', dataToSend);
     return response.data;
   }
 );
@@ -70,71 +31,40 @@ export const addDeviceLog = createAsyncThunk(
 export const updateDeviceLog = createAsyncThunk(
   'deviceLog/updateDeviceLog',
   async (finalData) => {
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY || 'test-api-key-123';
-    const response = await axios.put(`${baseUrl}?api_key=${apiKey}`, finalData);
+    const response = await axios.put('/api/Dashboard/Devicelog', finalData);
     return response.data;
   }
 );
 
 export const deleteDeviceLog = createAsyncThunk(
   'deviceLog/deleteDeviceLog',
-  async (logId) => {
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY || 'test-api-key-123';
-    const response = await axios.delete(`${baseUrl}?_id=${logId}&api_key=${apiKey}`);
+  async (deviceLogId) => {
+    const response = await axios.delete(`/api/Dashboard/Devicelog?_id=${deviceLogId}`);
     return response.data;
   }
 );
 
 export const deleteMultipleDeviceLogs = createAsyncThunk(
   'deviceLog/deleteMultipleDeviceLogs',
-  async (logIds) => {
-    const apiKey = process.env.NEXT_PUBLIC_API_KEY || 'test-api-key-123';
-    const response = await axios.delete(`/api/Dashboard/bulk-delete?api_key=${apiKey}`, {
+  async (deviceLogIds) => {
+    const response = await axios.delete('/api/Dashboard/bulk-delete', {
       data: { 
-        table: 'DeviceLog',
-        ids: logIds 
+        table: 'DeviceLogs',
+        ids: deviceLogIds 
       }
     });
     return response.data;
   }
 );
 
-export const fetchDeviceLogsByDeviceCode = createAsyncThunk(
-  'deviceLog/fetchDeviceLogsByDeviceCode',
-  async (deviceCode) => {
-    try {
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-      const response = await axios.get(`/api/Dashboard/Devicelog/filter?device_code=${deviceCode}&api_key=${apiKey}`);
-      console.log('Filtered DeviceLogs Response:', response.data);
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to fetch filtered device logs');
-      }
-      
-      return response.data.data || [];
-    } catch (error) {
-      console.error('Error fetching filtered device logs:', error);
-      
-      if (error.response?.status === 401) {
-        console.warn('API key authentication failed, returning empty array');
-        return [];
-      }
-      
-      throw error;
-    }
-  }
-);
-
-const initialState = {
-  deviceLogs: [],
-  loading: false,
-  error: null,
-  success: false,
-};
-
 const deviceLogSlice = createSlice({
   name: 'deviceLog',
-  initialState,
+  initialState: {
+    loading: false,
+    error: null,
+    success: false,
+    deviceLogs: [],
+  },
   reducers: {
     setLoading: (state, action) => {
       state.loading = action.payload;
@@ -146,25 +76,14 @@ const deviceLogSlice = createSlice({
       state.success = action.payload;
     },
     resetState: (state) => {
+      state.loading = false;
       state.error = null;
       state.success = false;
+      state.deviceLogs = [];
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch device logs
-      .addCase(fetchDeviceLogs.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDeviceLogs.fulfilled, (state, action) => {
-        state.loading = false;
-        state.deviceLogs = action.payload;
-      })
-      .addCase(fetchDeviceLogs.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
       // Fetch enhanced device logs
       .addCase(fetchEnhancedDeviceLogs.pending, (state) => {
         state.loading = true;
@@ -175,6 +94,19 @@ const deviceLogSlice = createSlice({
         state.deviceLogs = action.payload;
       })
       .addCase(fetchEnhancedDeviceLogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      // Fetch device logs by serial code
+      .addCase(fetchDeviceLogsBySerialCode.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDeviceLogsBySerialCode.fulfilled, (state, action) => {
+        state.loading = false;
+        state.deviceLogs = action.payload;
+      })
+      .addCase(fetchDeviceLogsBySerialCode.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
@@ -227,19 +159,6 @@ const deviceLogSlice = createSlice({
         state.success = true;
       })
       .addCase(deleteMultipleDeviceLogs.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-      // Fetch device logs by device code
-      .addCase(fetchDeviceLogsByDeviceCode.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDeviceLogsByDeviceCode.fulfilled, (state, action) => {
-        state.loading = false;
-        state.deviceLogs = action.payload;
-      })
-      .addCase(fetchDeviceLogsByDeviceCode.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

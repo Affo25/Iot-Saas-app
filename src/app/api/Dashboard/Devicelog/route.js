@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectToMongo from '../../../lib/mongodb_connection';
 import DeviceLog from '../../../Models/DeviceLog';
-
-// Utility to check API key
-function validateApiKey(request) {
-  const url = new URL(request.url);
-  const apiKey = url.searchParams.get('api_key');
-  return apiKey === process.env.API_KEY;
-}
+import CustomersDevice from '../../../Models/CustomersDevice';
+import { validateApiKey } from '../../../lib/mongodb';
 
 export async function POST(request) {
   if (!validateApiKey(request)) {
@@ -22,9 +17,9 @@ export async function POST(request) {
     const body = await request.json();
     console.log("📩 DeviceLog POST body:", body);
 
-    const { device_code, humidity, temperature, meta = {} } = body;
+    const { serial_code, humidity, temperature, meta = {} } = body;
 
-    if (!device_code) {
+    if (!serial_code) {
       return NextResponse.json(
         { success: false, message: "Device code is required" },
         { status: 400 }
@@ -44,7 +39,7 @@ export async function POST(request) {
     }
 
     const deviceLog = new DeviceLog({
-      device_code,
+      serial_code,
       humidity: Number(humidity) || 0,
       temperature: Number(temperature) || 0,
       meta: metaObject,
@@ -158,7 +153,7 @@ export async function PUT(request) {
     const body = await request.json();
     console.log("📩 DeviceLog PUT body:", body);
 
-    const { _id, device_code, humidity, temperature, meta } = body;
+    const { _id, serial_code, humidity, temperature, meta } = body;
 
     if (!_id) {
       return NextResponse.json(
@@ -183,7 +178,7 @@ export async function PUT(request) {
       updated_at: new Date()
     };
 
-    if (device_code) updateData.device_code = device_code;
+    if (serial_code) updateData.serial_code = serial_code;
     if (humidity !== undefined) updateData.humidity = Number(humidity);
     if (temperature !== undefined) updateData.temperature = Number(temperature);
     if (meta !== undefined) updateData.meta = metaObject;

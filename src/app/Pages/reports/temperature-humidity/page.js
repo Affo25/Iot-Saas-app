@@ -20,7 +20,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { fetchDeviceLogsByDeviceCode } from '../../../store/slices/deviceLogSlice';
+import { fetchDeviceLogsBySerialCode } from '../../../store/slices/deviceLogSlice';
 import DataTable from '../../../components/Tables/DataTable';
 import ThemeButton from "../../../components/Theme/dynamicButton";
 import ExcelJS from 'exceljs';
@@ -31,7 +31,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 function TemperatureHumidityReport() {
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
-  const deviceCode = searchParams.get('deviceCode');
+  const deviceCode = searchParams.get('serialCode');
   
   const { deviceLogs, loading, error } = useSelector((state) => state.deviceLog);
   
@@ -43,7 +43,8 @@ function TemperatureHumidityReport() {
 
   useEffect(() => {
     if (deviceCode) {
-      dispatch(fetchDeviceLogsByDeviceCode(deviceCode));
+      console.log("serialCode",deviceCode);
+      dispatch(fetchDeviceLogsBySerialCode(deviceCode));
     }
   }, [dispatch, deviceCode]);
 
@@ -55,16 +56,15 @@ function TemperatureHumidityReport() {
 
   // Process data for charts
   const getChartData = () => {
-    if (!filteredData || filteredData.length === 0) return [];
+    if (!deviceLogs || deviceLogs.length === 0) return [];
     
-    return filteredData.slice(0, 20).map((log, index) => ({
-      name: new Date(log.created_at).toLocaleDateString(),
-      time: new Date(log.created_at).toLocaleTimeString(),
+    return deviceLogs.slice(0, 10).map((log, index) => ({
+      name: `Log ${index + 1}`,
       temperature: log.temperature || 0,
       humidity: log.humidity || 0,
-      device: log.device_code || 'Unknown',
-      timestamp: log.created_at
-    })).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      device: log.device_title || log.serial_code || 'Unknown',
+      timestamp: new Date(log.created_at || Date.now()).toLocaleTimeString()
+    }));
   };
 
   const getTemperatureRanges = () => {
@@ -156,6 +156,14 @@ function TemperatureHumidityReport() {
   };
 
   const exportToExcel = async () => {
+    const data = deviceLogs.map(log => ({
+      'Date': new Date(log.created_at).toLocaleDateString(),
+      'Time': new Date(log.created_at).toLocaleTimeString(),
+      'Temperature (°C)': log.temperature,
+      'Humidity (%)': log.humidity,
+      'Serial Code': log.serial_code,
+    }));
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Temperature Humidity Report');
 
@@ -163,18 +171,18 @@ function TemperatureHumidityReport() {
     worksheet.columns = [
       { header: 'Date', key: 'date', width: 15 },
       { header: 'Time', key: 'time', width: 15 },
-      { header: 'Device Code', key: 'device_code', width: 20 },
+      { header: 'Serial Code', key: 'serial_code', width: 20 },
       { header: 'Temperature (°C)', key: 'temperature', width: 18 },
       { header: 'Humidity (%)', key: 'humidity', width: 15 },
       { header: 'Status', key: 'status', width: 15 }
     ];
 
     // Add data
-    filteredData.forEach(log => {
+    data.forEach(log => {
       worksheet.addRow({
-        date: new Date(log.created_at).toLocaleDateString(),
-        time: new Date(log.created_at).toLocaleTimeString(),
-        device_code: log.device_code,
+        date: log.date,
+        time: log.time,
+        serial_code: log.serial_code,
         temperature: log.temperature,
         humidity: log.humidity,
         status: 'Active'
@@ -208,7 +216,7 @@ function TemperatureHumidityReport() {
           <div className="nk-block-head-content">
             <h3 className="nk-block-title page-title">Temperature & Humidity Report</h3>
             <div className="nk-block-des text-soft">
-              <p>Device: <strong>{deviceCode}</strong> | Comprehensive temperature and humidity analysis</p>
+              <p>Serial Code: <strong>{deviceCode}</strong> | Comprehensive temperature and humidity analysis</p>
             </div>
           </div>
           <div className="nk-block-head-content">
@@ -494,7 +502,7 @@ function TemperatureHumidityReport() {
               showInfoColumn={false}
               showActions={false}
               tableName="TemperatureHumidityLog"
-              searchableFields={['device_code', 'temperature', 'humidity', 'created_at']}
+              searchableFields={['serial_code', 'temperature', 'humidity', 'created_at', 'meta']}
               columns={[
                 {
                   header: "Date",
@@ -523,10 +531,10 @@ function TemperatureHumidityReport() {
                   },
                 },
                 {
-                  header: "Device Code",
-                  accessor: "device_code",
-                  render: (value) => (
-                    <span className="badge badge-warning">{value}</span>
+                  header: "Serial Code",
+                  accessor: "serial_code",
+                  render: (value, item) => (
+                    <span className="badge badge-info">{value}</span>
                   ),
                 },
                 {
@@ -556,6 +564,31 @@ function TemperatureHumidityReport() {
                       <span className={`badge ${humidity > 80 ? 'badge-danger' : humidity > 60 ? 'badge-warning' : 'badge-info'}`}>
                         {humidity}%
                       </span>
+                    );
+                  },
+                },
+                {
+                  header: "Meta Data",
+                  accessor: "meta",
+                  render: (value) => {
+                    if (!value || Object.keys(value).length === 0) {
+                      return <span className="badge badge-secondary">No Data</span>;
+                    }
+                    
+                    // Convert meta object to badges
+                    const metaEntries = Object.entries(value);
+                    return (
+                      <div className="d-flex flex-wrap gap-1">
+                        {metaEntries.map(([key, val], index) => (
+                          <span 
+                            key={index} 
+                            className="badge badge-outline-success"
+                            title={`${key}: ${val}`}
+                          >
+                            {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                          </span>
+                        ))}
+                      </div>
                     );
                   },
                 },

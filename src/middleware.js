@@ -24,14 +24,13 @@ const verifyToken = async (token) => {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // ✅ 1. Skip public routes
+  // ✅ Allow public routes
   if (publicRoutes.includes(pathname)) {
     return NextResponse.next();
   }
 
-  // ✅ 2. Extract token (cookie or header)
+  // ✅ Try to get token from cookies or header
   let token = request.cookies.get('token')?.value;
-
   if (!token) {
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
@@ -41,9 +40,9 @@ export async function middleware(request) {
 
   const isApiRoute = pathname.startsWith('/api');
 
-  // ✅ 3. No token at all
+  // 🔒 No token provided
   if (!token) {
-    const loginPath = pathname.includes('/CustomersDevice') || pathname.includes('/Reports')
+    const loginPath = pathname.includes('customersdevice') || pathname.includes('reports')
       ? '/Pages/Auth/CustomerLogin'
       : '/Pages/Auth/Login';
 
@@ -56,7 +55,6 @@ export async function middleware(request) {
   }
 
   try {
-    // ✅ 4. Verify token and expiry
     const payload = await verifyToken(token);
 
     if (payload.exp && payload.exp < Date.now() / 1000) {
@@ -75,50 +73,37 @@ export async function middleware(request) {
     const userRole = payload.role;
     const isDashboardRoute = pathname.startsWith('/Pages');
 
-    // ✅ 5. Role-based access handling
+    // ✅ Role-based access
     if (userRole === 'Customer') {
-      const isCustomerPageAllowed =
-        pathname === '/Pages/customersdevice' ||
-        pathname === '/Pages/reports' ||
-        pathname === '/Pages';
+      const customerAllowedRoutes = [
+        '/Pages/customersdevice',
+        '/Pages/devicelogs',
+        '/Pages/reports/temperature-humidity',
+        '/Pages/reports/device-performance', 
+        '/Pages/reports/activity-logs',
+      ];
 
-      if (!isCustomerPageAllowed && isDashboardRoute) {
+      const isAllowed = customerAllowedRoutes.some(route => pathname.startsWith(route));
+      if (!isAllowed && isDashboardRoute) {
         return NextResponse.redirect(new URL('/Pages/customersdevice', request.url));
       }
     }
 
     if (userRole === 'Admin') {
-      // Allow full access to dashboard
-      return NextResponse.next();
+      return NextResponse.next(); // Allow all routes
     }
 
-    // ✅ 6. Block unknown roles accessing dashboard
+    // 🔐 Unknown role - restrict dashboard access
     // if (isDashboardRoute) {
-    //   const fallbackLogin = userRole === 'Customer'
-    //     ? '/Pages/Auth/CustomerLogin'
-    //     : '/Pages/Auth/Login';
-
+    //   const fallbackLogin = '/Pages/Auth/Login';
     //   return NextResponse.redirect(new URL(fallbackLogin, request.url));
     // }
 
-    // Check if the route is a protected dashboard route
-    if (
-      pathname === '/Pages/customersdevice' ||
-      pathname === '/Pages/reports' ||
-      pathname === '/Pages' ||
-      pathname === '/Pages/devicelogs' ||
-      pathname === '/Pages/customers' ||
-      pathname === '/Pages/device'
-    ) {
-      return NextResponse.redirect(new URL('/Pages/customersdevice', request.url));
-    }
-
-    // ✅ 7. Allow by default if not protected
     return NextResponse.next();
   } catch (err) {
-    const fallbackLogin = pathname.includes('/CustomersDevice') || pathname.includes('/Reports')
-      ? '/Pages/Auth/CustomerLogin'
-      : '/Pages/Auth/Login';
+    // const fallbackLogin = pathname.includes('customersdevice') || pathname.includes('reports')
+    //   ? '/Pages/Auth/CustomerLogin'
+    //   : '/Pages/Auth/Login';
 
     return isApiRoute
       ? new NextResponse(JSON.stringify({ error: 'Unauthorized: Invalid or expired token' }), {
