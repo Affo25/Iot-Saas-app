@@ -1,5 +1,4 @@
 "use client";
-"use client";
 /**
  * Customer Device Management Page
  * 
@@ -16,7 +15,7 @@
  * URL Format: /Pages/customersdevice?customer_id={customerId} (for admin)
  * URL Format: /Pages/customersdevice (for customer - no params needed)
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import DataTable from '../../components/Tables/DataTable';
@@ -40,7 +39,8 @@ import { getCurrentUser } from '../../store/slices/authSlice';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Elsie } from "next/font/google";
 
-function Page() {
+// Separate component to handle search params
+function CustomerDeviceContent() {
   const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1058,6 +1058,29 @@ function Page() {
         />
       )}
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function CustomerDeviceLoading() {
+  return (
+    <div className="nk-content-body">
+      <div className="d-flex align-items-center justify-content-center py-5">
+        <div className="spinner-border text-primary mr-2" role="status">
+          <span className="sr-only">Loading...</span>
+        </div>
+        <span>Loading customer devices...</span>
+      </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+function Page() {
+  return (
+    <Suspense fallback={<CustomerDeviceLoading />}>
+      <CustomerDeviceContent />
+    </Suspense>
   );
 }
 
