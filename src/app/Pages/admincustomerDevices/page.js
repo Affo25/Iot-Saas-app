@@ -40,13 +40,14 @@ function Page() {
   const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const urlCustomerId = searchParams.get('customer_id');
   const { customerDevices, loading, error, success } = useSelector((state) => state.customerDevice);
   const { customers, loading: customersLoading } = useSelector((state) => state.customer);
   const { devices, loading: devicesLoading } = useSelector((state) => state.device);
   const { user, customer, loading: authLoading } = useSelector((state) => state.auth);
 
   // Extract customer_id from search params (for admin) or get from logged-in user (for customer)
-  const urlCustomerId = searchParams.get('customer_id');
+  
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);
