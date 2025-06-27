@@ -354,7 +354,7 @@ const handleNavigate = (item) => {
                           className="btn btn-md btn-info ml-1"
                           onClick={()=>handleNavigate?.(item)}
                         >
-                           <i className='ni ni-user-fill'></i>
+                           <i className='ni ni-wifi'></i>
                         </button>
                         ):null}
                        

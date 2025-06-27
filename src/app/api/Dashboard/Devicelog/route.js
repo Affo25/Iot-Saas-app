@@ -5,7 +5,10 @@ import CustomersDevice from '../../../Models/CustomersDevice';
 import { validateApiKey } from '../../../lib/mongodb';
 
 export async function POST(request) {
-  if (!validateApiKey(request)) {
+  const url = new URL(request.url);
+  const apiKey = url.searchParams.get('api_key');
+
+  if (apiKey !== process.env.API_KEY) {
     return NextResponse.json(
       { success: false, message: 'Unauthorized: Invalid API key' },
       { status: 401 }

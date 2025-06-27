@@ -15,13 +15,13 @@ function Sidebr() {
   const adminMenuItems = [
     { menu_url: '/Pages', menu_title: 'Dashboard', icon: 'ni-home' },
     { menu_url: '/Pages/customers', menu_title: 'Customers', icon: 'ni-users' },
-    { menu_url: '/Pages/device', menu_title: 'Devices', icon: 'ni-bluetooth' },
+    { menu_url: '/Pages/device', menu_title: 'Products', icon: 'ni-wifi' },
     { menu_url: '/Pages/devicelogs', menu_title: 'Log History', icon: 'ni-rss' },
   ];
 
   const customerMenuItems = [
     { menu_url: '/Pages', menu_title: 'Dashboard', icon: 'ni-home' },
-    { menu_url: '/Pages/customersdevice', menu_title: 'Customer Devices', icon: 'ni-devices' },
+    { menu_url: '/Pages/customersdevice', menu_title: 'Customers Products', icon: 'ni-wifi' },
     { menu_url: '/Pages/devicelogs', menu_title: 'Log History', icon: 'ni-rss' },
   ];
 
