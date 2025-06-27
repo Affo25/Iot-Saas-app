@@ -770,16 +770,14 @@ function CustomerDeviceContent() {
         <div className="col-md-4">
   <div style={{ borderTop: "2px solid green" }} className="card card-bordered">
     <div className="card-inner">
-      <h6>Your Account Details:</h6>
+      <h6>Account Details:</h6>
       
       <div className="row">
-        <div className="col-md-4">
+        <div className="col-md-12">
           <p><strong>Name:</strong> {getCustomerDisplayName()}</p>
+          <p><strong>Email:</strong> {getCurrentCustomer()?.email || 'N/A'}</p>
         </div>
-        <div className="col-md-8">
-        <p><strong>Email:</strong> {getCurrentCustomer()?.email || 'N/A'}</p>
-
-        </div>
+        
       </div>
 
     </div>
@@ -787,18 +785,26 @@ function CustomerDeviceContent() {
 </div>
 
 
-          <div className="col-md-4">
-            <div style={{ "border-top": "2px solid green" }} className="card card-bordered">
-              <div className="card-inner">
-                <h6 className="card-title">Assign Devices to customers</h6>
-                <ul>
-                  {getCurrentCustomer()?.devices?.map((device, index) => (
-                    <li key={index}><span className="badge badge-info">{device}</span></li>
-                  )) || <p>No devices assigned</p>}
-                </ul>
-              </div>
-            </div>
-          </div>
+<div className="col-md-4">
+  <div style={{ borderTop: "2px solid green", height="140px" }} className="card card-bordered">
+    <div className="card-inner">
+      <h6 className="card-title">Assign Devices to Customers</h6>
+
+      {getCurrentCustomer()?.devices?.length > 0 ? (
+        <div className="d-flex flex-wrap" style={{ gap: "8px" }}>
+          {getCurrentCustomer().devices.map((device, index) => (
+            <span key={index} className="badge badge-info">{device}</span>
+          ))}
+        </div>
+      ) : (
+        <p>No devices assigned</p>
+      )}
+
+    </div>
+  </div>
+</div>
+
+
 
         </div>
       </div>
