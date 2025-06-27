@@ -1,6 +1,6 @@
 "use client";
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -305,9 +305,46 @@ function ActivityLogsReport() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="sr-only">Loading...</span>
+      <div className="nk-content">
+        <div className="container-fluid">
+          <div className="nk-content-inner">
+            <div className="nk-content-body">
+              <div className="nk-block">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="text-center">
+                      <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <p className="mt-2">Loading activity logs...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="nk-content">
+        <div className="container-fluid">
+          <div className="nk-content-inner">
+            <div className="nk-content-body">
+              <div className="nk-block">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="text-center text-danger">
+                      <p>Error loading activity logs: {error}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -743,5 +780,33 @@ function ActivityLogsReport() {
   );
 }
 
+function ActivityLogsReportWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="nk-content">
+        <div className="container-fluid">
+          <div className="nk-content-inner">
+            <div className="nk-content-body">
+              <div className="nk-block">
+                <div className="card">
+                  <div className="card-body">
+                    <div className="text-center">
+                      <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <p className="mt-2">Loading...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ActivityLogsReport />
+    </Suspense>
+  );
+}
 
-export default ActivityLogsReport;
+export default ActivityLogsReportWrapper;

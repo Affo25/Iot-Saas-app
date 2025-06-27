@@ -751,19 +751,7 @@ function CustomerDeviceContent() {
             <div className="nk-block-des text-soft">
               <p>Manage and keep track of customer devices</p>
             </div>
-            {/* Breadcrumb */}
-            {/* <nav aria-label="breadcrumb">
-              <ol className="breadcrumb breadcrumb-arrow">
-                {userRole === 'Admin' && (
-                  <li className="breadcrumb-item">
-                    <a href="/Pages/customers" className="text-primary">Customers</a>
-                  </li>
-                )}
-                <li className="breadcrumb-item active" aria-current="page">
-                  {getCustomerDisplayName()}
-                </li>
-              </ol>
-            </nav> */}
+           
           </div>
           <div className="nk-block-head-content">
             <ul className="nk-block-tools gx-3">
