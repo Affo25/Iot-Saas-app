@@ -786,7 +786,7 @@ function CustomerDeviceContent() {
 
 
 <div className="col-md-4">
-  <div style={{ borderTop: "2px solid green", height="140px" }} className="card card-bordered">
+  <div style={{ borderTop: "2px solid green", height:"140px" }} className="card card-bordered">
     <div className="card-inner">
       <h6 className="card-title">Assign Devices to Customers</h6>
 
