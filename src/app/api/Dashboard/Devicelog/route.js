@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import connectToMongo from '../../../lib/mongodb_connection';
 import DeviceLog from '../../../Models/DeviceLog';
 import CustomersDevice from '../../../Models/CustomersDevice';
-import { validateApiKey } from '../../../lib/mongodb';
+
 
 export async function POST(request) {
   const url = new URL(request.url);
@@ -65,7 +65,10 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
-  if (!validateApiKey(request)) {
+  const url = new URL(request.url);
+  const apiKey = url.searchParams.get('api_key');
+
+  if (apiKey !== process.env.API_KEY) {
     return NextResponse.json(
       { success: false, message: 'Unauthorized: Invalid API key' },
       { status: 401 }
@@ -95,7 +98,10 @@ export async function GET(request) {
 }
 
 export async function DELETE(request) {
-  if (!validateApiKey(request)) {
+  const url = new URL(request.url);
+  const apiKey = url.searchParams.get('api_key');
+
+  if (apiKey !== process.env.API_KEY) {
     return NextResponse.json(
       { success: false, message: 'Unauthorized: Invalid API key' },
       { status: 401 }
@@ -103,7 +109,6 @@ export async function DELETE(request) {
   }
 
   try {
-    const url = new URL(request.url);
     const id = url.searchParams.get('_id');
 
     if (!id) {
@@ -144,7 +149,10 @@ export async function DELETE(request) {
 }
 
 export async function PUT(request) {
-  if (!validateApiKey(request)) {
+  const url = new URL(request.url);
+  const apiKey = url.searchParams.get('api_key');
+
+  if (apiKey !== process.env.API_KEY) {
     return NextResponse.json(
       { success: false, message: 'Unauthorized: Invalid API key' },
       { status: 401 }
