@@ -307,7 +307,7 @@ function Page() {
         {/* Add/Edit Modal */}
         {isModalOpen && (
           <div className="modal fade zoom show" style={{ display: "block" }}>
-            <div className="modal-dialog modal-md" role="document">
+            <div className="modal-dialog modal-lg" role="document">
               <div className="modal-content">
                 <div className="modal-header bg-primary">
                   <h5 className="modal-title text-white">
@@ -324,7 +324,9 @@ function Page() {
                         {formErrors.error}
                       </div>
                     )}
-                    <div className="form-group mt-1">
+                    <div className="row">
+                      <div className="col-6">
+                          <div className="form-group mt-1">
                       <label className="form-label"><span>Device Name</span></label>
                       <div className="form-control-wrap">
                         <input
@@ -340,8 +342,9 @@ function Page() {
                         )}
                       </div>
                     </div>
-
-                    <div className="form-group mt-1">
+                      </div>
+                      <div className="col-md-6">
+                         <div className="form-group mt-1">
                       <label className="form-label"><span>Device Code</span></label>
                       <div className="form-control-wrap">
                         <input
@@ -357,8 +360,13 @@ function Page() {
                         )}
                       </div>
                     </div>
-
-                    <div className="form-group mt-1">
+                      </div>
+                     
+                    </div>
+                   
+                    <div className="row">
+                       <div className="col-md-6">
+                        <div className="form-group mt-1">
                       <label className="form-label"><span>Description</span></label>
                       <div className="form-control-wrap">
                         <textarea
@@ -374,8 +382,9 @@ function Page() {
                         )}
                       </div>
                     </div>
-
-                    <div className="form-group mt-1">
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-group mt-1">
                       <label className="form-label"><span>Status</span></label>
                       <div className="form-control-wrap">
                         <select
@@ -389,6 +398,13 @@ function Page() {
                         </select>
                       </div>
                     </div>
+                      </div>
+                    </div>
+                    
+
+                  
+
+                    
 
                     {/* Device Fields Section */}
                     <div className="form-group mt-3">

@@ -73,7 +73,7 @@ function Page() {
   // Process data for charts
   const getChartData = () => {
     if (!reduxDeviceLogs || reduxDeviceLogs.length === 0) return [];
-    
+
     return reduxDeviceLogs.slice(0, 10).map((log, index) => ({
       name: `Log ${index + 1}`,
       temperature: log.temperature || 0,
@@ -589,7 +589,7 @@ function Page() {
       {/* Modals */}
       {isModalOpen && (
         <div className="modal fade zoom show" style={{ display: "block" }}>
-          <div className="modal-dialog modal-md" role="document">
+          <div className="modal-dialog modal-lg" role="document">
             <div className="modal-content">
               <div className="modal-header bg-primary">
                 <h5 className="modal-title text-white">
@@ -606,41 +606,45 @@ function Page() {
                       {formErrors.error}
                     </div>
                   )}
-                  <div className="form-group mt-1">
-                    <label className="form-label"><span>Humidity</span></label>
-                    <div className="form-control-wrap">
-                      <input
-                        type="text"
-                        name="humidity"
-                        className={`form-control form-control-lg ${formErrors.humidity ? 'is-invalid' : ''}`}
-                        placeholder="Enter humidity"
-                        value={formData.humidity}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.humidity && (
-                        <div className="invalid-feedback">{formErrors.humidity}</div>
-                      )}
+                  <div className="row">
+                    <div className="col-md-4">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Humidity</span></label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            name="humidity"
+                            className={`form-control form-control-lg ${formErrors.humidity ? 'is-invalid' : ''}`}
+                            placeholder="Enter humidity"
+                            value={formData.humidity}
+                            onChange={handleInputChange}
+                          />
+                          {formErrors.humidity && (
+                            <div className="invalid-feedback">{formErrors.humidity}</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="form-group mt-1">
-                    <label className="form-label"><span>Serial Code</span></label>
-                    <div className="form-control-wrap">
-                      <input
-                        type="text"
-                        name="serial_code"
-                        className={`form-control form-control-lg ${formErrors.serial_code ? 'is-invalid' : ''}`}
-                        placeholder="Enter serial code"
-                        value={formData.serial_code}
-                        onChange={handleInputChange}
-                      />
-                      {formErrors.serial_code && (
-                        <div className="invalid-feedback">{formErrors.serial_code}</div>
-                      )}
+                    <div className="col-md-4">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Serial Code</span></label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            name="serial_code"
+                            className={`form-control form-control-lg ${formErrors.serial_code ? 'is-invalid' : ''}`}
+                            placeholder="Enter serial code"
+                            value={formData.serial_code}
+                            onChange={handleInputChange}
+                          />
+                          {formErrors.serial_code && (
+                            <div className="invalid-feedback">{formErrors.serial_code}</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="form-group mt-1">
+                    <div className="col-md4">
+                       <div className="form-group mt-1">
                     <label className="form-label"><span>Temperature</span></label>
                     <div className="form-control-wrap">
                       <input
@@ -656,6 +660,13 @@ function Page() {
                       )}
                     </div>
                   </div>
+                    </div>
+                  </div>
+
+
+
+
+                 
 
                   <div className="form-group mt-1">
                     <label className="form-label"><span>Meta</span></label>
