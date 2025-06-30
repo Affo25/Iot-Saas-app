@@ -332,7 +332,7 @@ function Page() {
                   color="btn-success"
                   onClick={exportToExcel}
                   text="Export Excel"
-                  icon="ni-file-excel"
+                  icon="ni-file"
                 />
               </li>
             </ul>

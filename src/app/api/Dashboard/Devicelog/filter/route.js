@@ -42,7 +42,7 @@ export async function GET(request) {
       serial_code: serialCode
     })
       .sort({ created_at: -1 })
-      .limit(100);
+      .limit(300);
     
     const enhancedDeviceLogs = deviceLogs.map(log => ({
       ...log.toObject(),

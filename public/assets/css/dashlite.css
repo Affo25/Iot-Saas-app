@@ -2919,7 +2919,7 @@ a.bg-lighter:hover, a.bg-lighter:focus, button.bg-lighter:hover, button.bg-light
 
 .pb-4, .py-4 { padding-bottom: 1.5rem !important; }
 
-.pl-4, .px-4 { padding-left: 1.5rem !important; }
+.pl-4, .px-4 { padding-left: 0.5rem !important; }
 
 .p-5 { padding: 2.75rem !important; }
 

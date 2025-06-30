@@ -750,7 +750,7 @@ function CustomerDeviceContent() {
                   color="btn-danger"
                   onClick={openModal}
                   text="Download Excel"
-                  icon="ni-file-excel"
+                  icon="ni-file"
                 />
               </li>
             </ul>

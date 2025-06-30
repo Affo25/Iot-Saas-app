@@ -8,6 +8,8 @@ import { logout } from '../../store/slices/authSlice';
 import useUserRoleStore from '../../store/userRoleStore';
 import useUserInfo from '../../hooks/useUserInfo';
 import { toast } from 'react-toastify';
+import Image from 'next/image';
+
 
 export default function Headers() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function Headers() {
   const setRole = useUserRoleStore((state) => state.setRole);
   const role = useUserRoleStore((state) => state.role);
   const [mounted, setMounted] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { userInfo, isLoggedIn, updateUserInfo } = useUserInfo();
   const { loading } = useSelector((state) => state.auth);
 
@@ -53,6 +56,16 @@ export default function Headers() {
     console.log("Selected Role:", role);
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+    // You can emit an event or call a parent function to actually toggle the sidebar
+    // For example: onSidebarToggle(!sidebarCollapsed);
+    const sidebarEvent = new CustomEvent('toggleSidebar', { 
+      detail: { collapsed: !sidebarCollapsed } 
+    });
+    window.dispatchEvent(sidebarEvent);
+  };
+
   // Don't render anything until after hydration
   if (!mounted) {
     return null;
@@ -61,9 +74,44 @@ export default function Headers() {
   // isLoggedIn is now coming from useUserInfo hook
 
   return (
-    <div className="nk-header is-light">
-      <div className="container-fluid">
+    <div className="nk-header is-light" style={{ width: '100%', position: 'relative' }}>
+      <div className="container-fluid" style={{ width: '100%', maxWidth: 'none', padding: '0 20px' }}>
         <div className="nk-header-wrap">
+          {/* Sidebar Toggle Button */}
+          <div className="nk-header-brand">
+            <button
+              className="btn btn-clean sidebar-toggle"
+              onClick={toggleSidebar}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '15px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#f5f6fa';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+              title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              <em 
+                className={`icon ni ${sidebarCollapsed ? 'ni-menu-right' : 'ni-menu-left'}`}
+                style={{ 
+                  fontSize: '18px', 
+                  color: '#526484',
+                  transition: 'transform 0.3s ease'
+                }}
+              ></em>
+            </button>
+          </div>
+          
           <div className="nk-header-tools">
             <ul className="nk-quick-nav">
               <li className="dropdown user-dropdown">
@@ -76,11 +124,31 @@ export default function Headers() {
                   <div className="user-toggle">
                     <div className="user-avatar sm">
                       {userInfo.userRole === 'Admin' ? (
-                        <em className="icon ni ni-shield-check" style={{ color: '#e85347' }}></em>
+                       
+                        <Image
+                          src="/images/user-1.jpg"  // Replace with your actual image path
+                          alt="User Icon"
+                          width={50}
+                          height={50}
+                          className="inline-block"
+                        />
+                        // <em className="icon ni ni-user" style={{ color: '#e85347' }}></em>
                       ) : userInfo.userRole === 'Customer' ? (
-                        <em className="icon ni ni-users" style={{ color: '#0fac81' }}></em>
+                        <Image
+                          src="/images/user-1.jpg"  // Replace with your actual image path
+                          alt="User Icon"
+                          width={50}
+                          height={50}
+                          className="inline-block"
+                        />
                       ) : (
-                        <em className="icon ni ni-user-alt"></em>
+                        <Image
+                          src="/images/user-1.jpg"  // Replace with your actual image path
+                          alt="User Icon"
+                          width={50}
+                          height={50}
+                          className="inline-block"
+                        />
                       )}
                     </div>
                     <div className="user-info d-none d-md-block">
@@ -108,11 +176,29 @@ export default function Headers() {
                         <div className="d-flex align-items-center p-3 border-bottom">
                           <div className="user-avatar me-3">
                             {userInfo.userRole === 'Admin' ? (
-                              <em className="icon ni ni-shield-check" style={{ color: '#e85347', fontSize: '24px' }}></em>
+                               <Image
+                          src="/images/user-1.jpg"  // Replace with your actual image path
+                          alt="User Icon"
+                          width={50}
+                          height={50}
+                          className="inline-block"
+                        />
                             ) : userInfo.userRole === 'Customer' ? (
-                              <em className="icon ni ni-users" style={{ color: '#0fac81', fontSize: '24px' }}></em>
+                              <Image
+                          src="/images/user-1.jpg"  // Replace with your actual image path
+                          alt="User Icon"
+                          width={50}
+                          height={50}
+                          className="inline-block"
+                        />
                             ) : (
-                              <em className="icon ni ni-user-alt" style={{ fontSize: '24px' }}></em>
+                               <Image
+                          src="/images/user-1.jpg"  // Replace with your actual image path
+                          alt="User Icon"
+                          width={50}
+                          height={50}
+                          className="inline-block"
+                        />
                             )}
                           </div>
                           <div className="user-details">
@@ -125,8 +211,8 @@ export default function Headers() {
                             <div className="user-role" style={{ 
                               fontSize: '12px',
                               padding: '2px 8px',
-                              backgroundColor: userInfo.userRole === 'Admin' ? '#e853471a' : '#0fac811a',
-                              color: userInfo.userRole === 'Admin' ? '#e85347' : '#0fac81',
+                              backgroundColor: userInfo.userRole === 'Admin' ? '#006389' : '#8fce00',
+                              color: userInfo.userRole === 'Admin' ? 'white' : 'white',
                               borderRadius: '4px',
                               display: 'inline-block',
                               fontWeight: '600'

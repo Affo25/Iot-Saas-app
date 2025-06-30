@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
+import './sidebar.css';
 
 function Sidebr() {
   const [role, setRole] = useState('');
@@ -26,87 +27,76 @@ function Sidebr() {
   ];
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedRole = localStorage.getItem('userRole');
-      if (storedRole) setRole(storedRole);
-    }
+    const storedRole = localStorage.getItem('userRole');
+    if (storedRole) setRole(storedRole);
   }, []);
 
   const handleNavigate = (menu_url) => {
     if (pathname === menu_url) return;
-
     NProgress.start();
-    // setTimeout(() => NProgress.set(0.1), 200);
-    // setTimeout(() => NProgress.set(0.3), 200);
-    // setTimeout(() => NProgress.set(0.7), 200);
-    // setTimeout(() => NProgress.set(0.7), 200);
-    // setTimeout(() => NProgress.set(0.9), 200);
-    // setTimeout(() => NProgress.set(1.0), 200);
     setTimeout(() => {
       router.push(menu_url);
       NProgress.done();
-    }, 10000);
+    }, 400);
   };
 
+  const menuItems = role === 'Customer' ? customerMenuItems : adminMenuItems;
+
   return (
-    <div className="nk-sidebar nk-sidebar-fixed is-light" data-content="sidebarMenu">
-      <div className="nk-sidebar-element nk-sidebar-head">
-        <div className="nk-sidebar-brand">
-          <Link href="/Pages" className="logo-link nk-sidebar-logo">
+    <div
+      className="nk-sidebar nk-sidebar-fixed is-light nk-sidebar"
+      data-content-height="true"
+      data-content="sidebarMenu"
+      style={{ transition: 'width 0.3s ease', overflow: 'hidden' }}
+    >
+      {/* Brand Section */}
+      <div className="nk-sidebar-element nk-sidebar-head border-bottom px-3 py-3">
+        <div className="nk-sidebar-brand flex items-center">
+          <Link href="/Pages" className="flex items-center gap-2">
             <Image
-              className="logo-light logo-img"
-              src="/images/logo.png"
-              alt="logo"
-              width={100}
-              height={50}
+              src="/images/main-logo.png"
+              alt="Logo"
+              width={160}
+              height={80}
+              className="transition-all duration-300"
+              style={{
+                filter: 'invert(18%) sepia(99%) saturate(7492%) hue-rotate(215deg) brightness(95%) contrast(95%)',
+              }}
             />
-            <img
-              className="logo-dark logo-img"
-              src="/images/logo-dark.png"
-              alt="logo-dark"
-            />
-            <span className="nio-version">QRCode Generator</span>
-          </Link>
-        </div>
-        <div className="nk-menu-trigger mr-n2">
-          <Link href="#" className="nk-nav-toggle nk-quick-nav-icon d-xl-none" data-target="sidebarMenu">
-            <em className="icon ni ni-arrow-left"></em>
+
+            {/* <span className="text-base font-semibold font-sans-serif">IOT SAAS</span> */}
           </Link>
         </div>
       </div>
 
+      {/* Menu List */}
       <div className="nk-sidebar-element">
-        <div className="nk-sidebar-content">
+        <div className="nk-sidebar-content transition-all duration-300">
           <div className="nk-sidebar-menu" data-simplebar>
-            <ul className="nk-menu">
-              {role ? (
-                (role === 'Customer' ? customerMenuItems : adminMenuItems).map((menu, index) => {
-                  const isActive = pathname === menu.menu_url;
-                  return (
-                    <li key={index} className={`nk-menu-item ${isActive ? 'active' : ''}`}>
-                      <button
-                        onClick={() => handleNavigate(menu.menu_url)}
-                        className={`w-full text-left nk-menu-link px-4 py-2 mx-2 rounded-lg transition-all duration-200 ${
-                          isActive
-                            ? 'bg-primary text-white font-semibold pl-6 pr-4'
-                            : 'hover:bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        <span className="nk-menu-icon">
-                          <em className={`icon ni ${menu.icon}`}></em>
-                        </span>
-                        <span className="nk-menu-text">{menu.menu_title}</span>
-                      </button>
-                    </li>
-                  );
-                })
-              ) : (
-                <li className="nk-menu-item">
-                  <div className="nk-menu-link block px-4 py-2 mx-2 text-gray-500">
-                    <span className="nk-menu-text">Loading menu...</span>
-                  </div>
-                </li>
-              )}
+            <ul className="nk-menu mt-3">
+              {menuItems.map((menu, index) => {
+                const isActive = pathname === menu.menu_url;
+                return (
+                  <li key={index} className="nk-menu-item relative">
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 bg-blue-600 rounded-r-lg"></span>
+                    )}
+                    <button
+                      onClick={() => handleNavigate(menu.menu_url)}
+                      className={`nk-menu-link flex items-center w-full text-left px-4 py-2 pl-5 transition-all duration-200 ${
+                        isActive
+                          ? 'bg-blue-50 text-primary font-semibold'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <span className="nk-menu-icon">
+                        <em className={`icon ni ${menu.icon}`}></em>
+                      </span>
+                      <span className="nk-menu-text ml-3">{menu.menu_title}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
