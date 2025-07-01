@@ -157,6 +157,22 @@ function CustomerDeviceContent() {
     }
   }, [success, dispatch, customerId]);
 
+  // Add event listener for customer device updates from device logs
+  useEffect(() => {
+    const handleCustomerDeviceUpdate = (event) => {
+      console.log('🔄 Customer device updated via device log, refreshing data...', event.detail);
+      if (customerId) {
+        dispatch(fetchCustomerDevices(customerId));
+      }
+    };
+
+    window.addEventListener('customerDeviceUpdated', handleCustomerDeviceUpdate);
+    
+    return () => {
+      window.removeEventListener('customerDeviceUpdated', handleCustomerDeviceUpdate);
+    };
+  }, [customerId, dispatch]);
+
   // Function to fetch customer record
   const fetchCustomerRecord = async (customerId) => {
     try {

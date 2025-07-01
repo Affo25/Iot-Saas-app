@@ -55,7 +55,7 @@ export async function POST(request) {
       const updatedCustomerDevice = await CustomerDevice.findOneAndUpdate(
         { device_serial_number: serial_code },
         { 
-          last_updated: created_at,
+          last_updated: deviceLog.created_at,
           updated_at: new Date()
         },
         { 

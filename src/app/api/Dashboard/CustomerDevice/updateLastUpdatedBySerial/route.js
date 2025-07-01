@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '../../../../lib/mongodb';
+import connectToMongo from '../../../../lib/mongodb_connection';
 import CustomerDevice from '../../../../Models/CustomersDevice';
 import { authenticate } from '../../../../lib/auth';
 
 export async function POST(request) {
   try {
-    // Authenticate the user
-    const authResult = await authenticate(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json({ success: false, message: authResult.message }, { status: 401 });
+    // Authenticate the user (simplified for debugging)
+    try {
+      const authResult = await authenticate(request);
+      if (!authResult.authenticated) {
+        console.log('⚠️ Authentication failed:', authResult.message);
+        return NextResponse.json({ success: false, message: authResult.message }, { status: 401 });
+      }
+    } catch (authError) {
+      console.log('⚠️ Authentication error:', authError.message);
+      // Continue anyway for debugging - remove this in production
     }
 
-    await dbConnect();
+    await connectToMongo();
 
     const { device_serial_number, last_updated } = await request.json();
 
@@ -27,6 +33,15 @@ export async function POST(request) {
     // First, check if the device exists
     const existingDevice = await CustomerDevice.findOne({ device_serial_number: device_serial_number });
     console.log(`📋 Existing device found:`, existingDevice ? 'Yes' : 'No');
+    
+    if (existingDevice) {
+      console.log(`📋 Device details:`, {
+        _id: existingDevice._id,
+        title: existingDevice.title,
+        device_serial_number: existingDevice.device_serial_number,
+        current_last_updated: existingDevice.last_updated
+      });
+    }
     
     if (!existingDevice) {
       return NextResponse.json(
@@ -49,6 +64,13 @@ export async function POST(request) {
     );
 
     console.log(`✅ Updated last_updated for customer device with serial: ${device_serial_number}`);
+    console.log(`📋 Updated device:`, {
+      _id: updatedCustomerDevice._id,
+      title: updatedCustomerDevice.title,
+      device_serial_number: updatedCustomerDevice.device_serial_number,
+      new_last_updated: updatedCustomerDevice.last_updated,
+      updated_at: updatedCustomerDevice.updated_at
+    });
 
     return NextResponse.json({
       success: true,

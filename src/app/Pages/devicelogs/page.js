@@ -180,6 +180,8 @@ function Page() {
   // Function to update customer device's last_updated field
   const updateCustomerDeviceLastUpdated = async (serialCode) => {
     try {
+      console.log('🔄 Attempting to update last_updated for serial:', serialCode);
+      
       const response = await fetch('/api/Dashboard/CustomerDevice/updateLastUpdatedBySerial', {
         method: 'POST',
         headers: {
@@ -192,15 +194,20 @@ function Page() {
         })
       });
 
+      console.log('📡 API Response status:', response.status);
       const data = await response.json();
+      console.log('📡 API Response data:', data);
       
       if (data.success) {
-        console.log(`Updated last_updated for device with serial: ${serialCode}`);
+        console.log(`✅ Updated last_updated for device with serial: ${serialCode}`);
+        return true;
       } else {
-        console.warn(`Failed to update last_updated for device with serial: ${serialCode}`, data.message);
+        console.warn(`❌ Failed to update last_updated for device with serial: ${serialCode}`, data.message);
+        return false;
       }
     } catch (error) {
-      console.error('Error updating customer device last_updated:', error);
+      console.error('💥 Error updating customer device last_updated:', error);
+      return false;
     }
   };
 
@@ -236,13 +243,18 @@ function Page() {
         // Update customer device's last_updated field if this is a new log
         if (!isEditMode && formData.serial_code) {
           console.log('🔄 Updating customer device last_updated for serial:', formData.serial_code);
-          await updateCustomerDeviceLastUpdated(formData.serial_code);
+          const updateResult = await updateCustomerDeviceLastUpdated(formData.serial_code);
           
-          // Optional: Trigger a refresh of customer devices data in other components
-          // You can dispatch a custom event or use a global state update here
-          window.dispatchEvent(new CustomEvent('customerDeviceUpdated', {
-            detail: { serialCode: formData.serial_code }
-          }));
+          if (updateResult) {
+            // Trigger a targeted refresh of customer devices data
+            window.dispatchEvent(new CustomEvent('customerDeviceUpdated', {
+              detail: { 
+                serialCode: formData.serial_code,
+                timestamp: new Date().toISOString(),
+                action: 'lastUpdatedChanged'
+              }
+            }));
+          }
         }
         
         toast.success(isEditMode ? 'Device log updated successfully' : 'Device log added successfully');
