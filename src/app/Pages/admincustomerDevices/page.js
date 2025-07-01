@@ -54,6 +54,7 @@ function CustomerDeviceContent() {
     customer_id: '',
     device_code: '',
     title: '',
+    warning_points: '',
     device_serial_number: '',
     description: '',
     m1: '',
@@ -235,6 +236,7 @@ function CustomerDeviceContent() {
       customer_id: customerDevice.customer_id || '',
       device_code: customerDevice.device_code || '',
       title: customerDevice.title || '',
+      warning_points: customerDevice.warning_points || '',
       device_serial_number: customerDevice.device_serial_number || '',
       description: customerDevice.description || '',
       status: customerDevice.status || 'Active',
@@ -266,8 +268,10 @@ function CustomerDeviceContent() {
         customer_id: formData.customer_id,
         device_code: formData.device_code,
         title: formData.title,
+        warning_points: formData.warning_points,
         device_serial_number: formData.device_serial_number,
         description: formData.description,
+        last_updated: new Date().toISOString(), // Automatically set current datetime
         status: formData.status
       };
 
@@ -635,6 +639,48 @@ function CustomerDeviceContent() {
       },
     },
     {
+      header: "Warning Points",
+      accessor: "warning_points",
+      render: (value, item) => {
+        const warningPoints = value || 0;
+        return (
+          <div className="text-center">
+            <span className={`badge badge-${warningPoints > 5 ? 'danger' : warningPoints > 2 ? 'warning' : 'success'}`}>
+              {warningPoints}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Last Updated",
+      accessor: "last_updated",
+      render: (value, item) => {
+        if (!value) return <span className="text-muted">Never</span>;
+        
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return <span className="text-muted">Invalid Date</span>;
+        
+        return (
+          <div className="text-center">
+            <div className="text-primary" style={{ fontSize: '12px' }}>
+              {date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+            <div className="text-muted" style={{ fontSize: '11px' }}>
+              {date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
       header: "Reports",
       accessor: "device_code",
       render: (value, item) => (
@@ -692,6 +738,7 @@ function CustomerDeviceContent() {
       customer_id: customerId || '',
       device_code: '',
       title: '',
+      warning_points: '',
       device_serial_number: '',
       description: '',
       status: 'Active',
@@ -830,6 +877,8 @@ function CustomerDeviceContent() {
             "device_serial_number",
             "status",
             "description",
+            "warning_points",
+            "last_updated",
             "m1",
             "m2",
             "inp1",
@@ -877,7 +926,7 @@ function CustomerDeviceContent() {
                     </div>
                   )}
 
-                  {/* Row 1: Customer and Device */}
+                  {/* Row 1: Customer and Device Code */}
                   <div className="row">
                     <div className="col-md-6">
                       <div className="form-group mt-1">
@@ -899,6 +948,29 @@ function CustomerDeviceContent() {
                           </select>
                           {formErrors.customer_id && (
                             <div className="invalid-feedback">{formErrors.customer_id}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Device Code</span></label>
+                        <div className="form-control-wrap">
+                          <select
+                            name="device_code"
+                            className={`form-control form-control-lg ${formErrors.device_code ? 'is-invalid' : ''}`}
+                            value={formData.device_code}
+                            onChange={handleInputChange}
+                          >
+                            <option value="">Select Device</option>
+                            {getAvailableDevices().map(device => (
+                              <option key={device._id} value={device.device_code}>
+                                {device.device_name} ({device.device_code})
+                              </option>
+                            ))}
+                          </select>
+                          {formErrors.device_code && (
+                            <div className="invalid-feedback">{formErrors.device_code}</div>
                           )}
                         </div>
                       </div>
@@ -942,7 +1014,28 @@ function CustomerDeviceContent() {
                     </div>
                   </div>
 
-                  {/* Row 3: Description (Full Width) */}
+                  {/* Row 3: Warning Points and Last Updated */}
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Warning Points</span></label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="number"
+                            name="warning_points"
+                            className="form-control form-control-lg"
+                            placeholder="Enter warning points"
+                            value={formData.warning_points}
+                            onChange={handleInputChange}
+                            min="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Row 4: Status */}
                   <div className="row">
                     <div className="col-md-6">
                       <div className="form-group mt-1">

@@ -177,6 +177,33 @@ function Page() {
     setIsModalOpen(true);
   };
 
+  // Function to update customer device's last_updated field
+  const updateCustomerDeviceLastUpdated = async (serialCode) => {
+    try {
+      const response = await fetch('/api/Dashboard/CustomerDevice/updateLastUpdatedBySerial', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          device_serial_number: serialCode,
+          last_updated: new Date().toISOString()
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log(`Updated last_updated for device with serial: ${serialCode}`);
+      } else {
+        console.warn(`Failed to update last_updated for device with serial: ${serialCode}`, data.message);
+      }
+    } catch (error) {
+      console.error('Error updating customer device last_updated:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -205,6 +232,19 @@ function Page() {
       if (result) {
         closeModal();
         dispatch(fetchEnhancedDeviceLogs());
+        
+        // Update customer device's last_updated field if this is a new log
+        if (!isEditMode && formData.serial_code) {
+          console.log('🔄 Updating customer device last_updated for serial:', formData.serial_code);
+          await updateCustomerDeviceLastUpdated(formData.serial_code);
+          
+          // Optional: Trigger a refresh of customer devices data in other components
+          // You can dispatch a custom event or use a global state update here
+          window.dispatchEvent(new CustomEvent('customerDeviceUpdated', {
+            detail: { serialCode: formData.serial_code }
+          }));
+        }
+        
         toast.success(isEditMode ? 'Device log updated successfully' : 'Device log added successfully');
       } else {
         toast.error('Operation failed');

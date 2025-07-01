@@ -17,6 +17,12 @@ const CustomersDeviceSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  warning_points: {
+    type: String,
+    required: false,
+    trim: true,
+    default: '0',
+  },
   customer_id: {
     type: String,
     required: true,
@@ -93,6 +99,10 @@ const CustomersDeviceSchema = new mongoose.Schema({
     trim: true,
     default: '',
   },
+   last_updated: {
+    type: Date,
+    default: Date.now,
+  },
   created_at: {
     type: Date,
     default: Date.now,
@@ -101,7 +111,6 @@ const CustomersDeviceSchema = new mongoose.Schema({
   updated_at: {
     type: Date,
     default: Date.now,
-    immutable: true,
   },
 }, {
   timestamps: false,

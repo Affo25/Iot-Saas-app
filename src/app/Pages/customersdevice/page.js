@@ -70,6 +70,7 @@ function CustomerDeviceContent() {
     customer_id: '',
     device_code: '',
     title: '',
+    warning_points: '',
     device_serial_number: '',
     description: '',
     m1: '',
@@ -251,6 +252,7 @@ function CustomerDeviceContent() {
       customer_id: customerDevice.customer_id || '',
       device_code: customerDevice.device_code || '',
       title: customerDevice.title || '',
+      warning_points: customerDevice.warning_points || '',
       device_serial_number: customerDevice.device_serial_number || '',
       description: customerDevice.description || '',
       status: customerDevice.status || 'Active',
@@ -282,8 +284,10 @@ function CustomerDeviceContent() {
         customer_id: formData.customer_id,
         device_code: formData.device_code,
         title: formData.title,
+        warning_points: formData.warning_points,
         device_serial_number: formData.device_serial_number,
         description: formData.description,
+        last_updated: new Date().toISOString(), // Automatically set current datetime
         status: formData.status
       };
 
@@ -385,7 +389,7 @@ function CustomerDeviceContent() {
         targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       } else if (deviceCodes === "WCS4-01") {
         targetUrl = `/Pages/reports/device-performance?serialCode=${code}&&deviceCode=${deviceCodes}`;
-      } else if(deviceCodes==="WCS4-02"){
+      } else if (deviceCodes === "WCS4-02") {
         targetUrl = `/Pages/reports/activity-logs?serialCode=${code}&&deviceCode=${deviceCodes}`;
       }
 
@@ -651,6 +655,48 @@ function CustomerDeviceContent() {
       },
     },
     {
+      header: "Warning Points",
+      accessor: "warning_points",
+      render: (value, item) => {
+        const warningPoints = value || 0;
+        return (
+          <div className="text-center">
+            <span className={`badge badge-${warningPoints > 5 ? 'danger' : warningPoints > 2 ? 'warning' : 'success'}`}>
+              {warningPoints}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Last Updated",
+      accessor: "last_updated",
+      render: (value, item) => {
+        if (!value) return <span className="text-muted">Never</span>;
+        
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return <span className="text-muted">Invalid Date</span>;
+        
+        return (
+          <div className="text-center">
+            <div className="text-primary" style={{ fontSize: '12px' }}>
+              {date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+            <div className="text-muted" style={{ fontSize: '11px' }}>
+              {date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
       header: "Reports",
       accessor: "device_code",
       render: (value, item) => (
@@ -708,6 +754,7 @@ function CustomerDeviceContent() {
       customer_id: customerId || '',
       device_code: '',
       title: '',
+      warning_points: '',
       device_serial_number: '',
       description: '',
       status: 'Active',
@@ -746,28 +793,29 @@ function CustomerDeviceContent() {
         <div className="nk-block-between">
           <div className="nk-block-head-content">
             <h3 className="nk-block-title page-title">
-              CustomerDevices
+              Customer Devices
             </h3>
             <div className="nk-block-des text-soft">
               <p>Manage and keep track of customer devices</p>
             </div>
-           
+
           </div>
           <div className="nk-block-head-content">
             <ul className="nk-block-tools gx-3">
               <li>
+                <ThemeButton
+                  color="btn-danger"
+                  onClick={openModal}
+                  text="Download Excel"
+                  icon="ni-file"
+                />
                 <ThemeButton
                   color="btn-primary"
                   onClick={openModal}
                   text="Add Customer Device"
                   icon="ni-plus"
                 />
-                <ThemeButton
-                  color="btn-danger"
-                  onClick={openModal}
-                  text="Download Excel"
-                  icon="ni-file-excel"
-                />
+
               </li>
             </ul>
           </div>
@@ -795,6 +843,8 @@ function CustomerDeviceContent() {
             "device_serial_number",
             "status",
             "description",
+            "warning_points",
+            "last_updated",
             "m1",
             "m2",
             "inp1",
@@ -819,7 +869,7 @@ function CustomerDeviceContent() {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="modal fade zoom show" style={{ display: "block" }}>
-          <div className="modal-dialog modal-lg" role="document">
+          <div className="modal-dialog modal-xl" role="document">
             <div className="modal-content">
               <div className="modal-header bg-primary">
                 <h5 className="modal-title text-white">
@@ -868,28 +918,7 @@ function CustomerDeviceContent() {
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Row 2: Title and Serial Number */}
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="form-group mt-1">
-                        <label className="form-label"><span>Title</span></label>
-                        <div className="form-control-wrap">
-                          <input
-                            type="text"
-                            name="title"
-                            className={`form-control form-control-lg ${formErrors.title ? 'is-invalid' : ''}`}
-                            placeholder="Enter title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                          />
-                          {formErrors.title && (
-                            <div className="invalid-feedback">{formErrors.title}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
                     <div className="col-md-6">
                       <div className="form-group mt-1">
                         <label className="form-label"><span>Serial Number</span></label>
@@ -905,6 +934,11 @@ function CustomerDeviceContent() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Row 2: Title and Serial Number */}
+                  <div className="row">
+
                   </div>
 
                   {/* Row 3: Description (Full Width) */}
@@ -925,68 +959,37 @@ function CustomerDeviceContent() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group mt-1">
-                      <label className="form-label"><span>Description</span></label>
-                      <div className="form-control-wrap">
-                        <textarea
-                          name="description"
-                          className="form-control form-control-lg"
-                          placeholder="Enter description"
-                          rows="3"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="row">
-                    <div className="col-md-8">
+                      <div className="col-md-5">
                       <hr />
                       <div className="form-group mt-1">
                         <label className="form-label">
                           <strong>Assigned Devices</strong>
                         </label>
-                        <div
-                          className="device-checkbox-list"
-                          style={{
-                            maxHeight: '150px',
-                            overflowY: 'auto',
-                            border: '1px solid #e5e9f2',
-                            borderRadius: '4px',
-                            padding: '10px',
-                          }}
-                        >
-                          {getCurrentCustomer() && Array.isArray(getCurrentCustomer().devices) && getCurrentCustomer().devices.length > 0 ? (
-                            getCurrentCustomer().devices.map((device, index) => (
-                              <div key={index} className="custom-control custom-radio mb-2">
-                                <input
-                                  type="radio"
-                                  className="custom-control-input"
-                                  name="deviceSelect"
-                                  id={`device-${index}`}
-                                  value={device}
-                                  checked={formData.device_code === device}
-                                  onChange={(e) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      device_code: e.target.value,
-                                    }))
-                                  }
-                                />
-                                <label className="custom-control-label" htmlFor={`device-${index}`}>
-                                  <span className="font-weight-medium">{device.toUpperCase()}</span>
-                                </label>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-muted text-center py-2">
-                              {userRole === 'Customer' ? 'No devices assigned to your account' : 'No devices found'}
-                            </p>
-                          )}
-                        </div>
+
+                        {getCurrentCustomer() && Array.isArray(getCurrentCustomer().devices) && getCurrentCustomer().devices.length > 0 ? (
+                          <select
+                            className="form-control"
+                            name="device_code"
+                            value={formData.device_code}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                device_code: e.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">Select a device</option>
+                            {getCurrentCustomer().devices.map((device, index) => (
+                              <option key={index} value={device}>
+                                {device.toUpperCase()}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <p className="text-muted text-center py-2">
+                            {userRole === 'Customer' ? 'No devices assigned to your account' : 'No devices found'}
+                          </p>
+                        )}
 
                         {formData.device_code && (
                           <div className="mt-2">
@@ -997,6 +1000,67 @@ function CustomerDeviceContent() {
                         )}
                       </div>
                     </div>
+                  
+                  </div>
+                  {formData.device_code!=="" && (
+                        <div className="row">
+                    <div className="col-md-6">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Device Title</span></label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            name="title"
+                            className={`form-control form-control-lg ${formErrors.title ? 'is-invalid' : ''}`}
+                            placeholder="Enter device title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                          />
+                          {formErrors.title && (
+                            <div className="invalid-feedback">{formErrors.title}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Warning Points</span></label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="number"
+                            name="warning_points"
+                            className="form-control form-control-lg"
+                            placeholder="Enter warning points"
+                            value={formData.warning_points}
+                            onChange={handleInputChange}
+                            min="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  )}
+
+
+                 
+
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="form-group mt-1">
+                        <label className="form-label"><span>Description</span></label>
+                        <div className="form-control-wrap">
+                          <textarea
+                            name="description"
+                            className="form-control form-control-lg"
+                            placeholder="Enter description"
+                            rows="3"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
 
 

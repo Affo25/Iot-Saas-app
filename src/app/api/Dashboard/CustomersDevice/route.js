@@ -18,6 +18,8 @@ export async function POST(request) {
       customer_id,
       status = 0,
       description = '',
+      warning_points = '',
+      last_updated,
       m1 = '',
       m2 = '',
       inp1 = '',
@@ -44,6 +46,8 @@ export async function POST(request) {
       customer_id,
       status : new Int32(parseInt(body.status)),
       description,
+      warning_points,
+      last_updated: last_updated ? new Date(last_updated) : new Date(),
       m1,
       m2,
       inp1,
@@ -164,6 +168,8 @@ export async function PUT(request) {
       customer_id,
       status,
       description,
+      warning_points,
+      last_updated,
       m1,
       m2,
       inp1,
@@ -192,6 +198,8 @@ export async function PUT(request) {
         customer_id,
         status: new Int32(parseInt(status)),
         description,
+        warning_points,
+        last_updated: last_updated ? new Date(last_updated) : new Date(),
         m1,
         m2,
         inp1,
@@ -202,9 +210,9 @@ export async function PUT(request) {
         outp2,
         outp3,
         outp4,
-        updatedAt: Date.now(),
+        updated_at: new Date(),
       },
-      { new: true }
+      { new: true, runValidators: false }
     );
 
     if (!updatedDevice) {
