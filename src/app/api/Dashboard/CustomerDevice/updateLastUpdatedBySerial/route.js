@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '../../../../../lib/mongodb';
-import CustomerDevice from '../../../../../Models/CustomersDevice';
-import { authenticate } from '../../../../../lib/auth';
+import dbConnect from '../../../../lib/mongodb';
+import CustomerDevice from '../../../../Models/CustomersDevice';
+import { authenticate } from '../../../../lib/auth';
 
 export async function POST(request) {
   try {
