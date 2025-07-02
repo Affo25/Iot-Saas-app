@@ -79,6 +79,7 @@ export async function middleware(request) {
       const customerAllowedRoutes = [
         '/Pages/customersdevice',
         '/Pages/devicelogs',
+        '/Pages/customerDashboard',
         '/Pages/reports/temperature-humidity',
         '/Pages/reports/device-performance', 
         '/Pages/reports/activity-logs',
@@ -86,7 +87,7 @@ export async function middleware(request) {
 
       const isAllowed = customerAllowedRoutes.some(route => pathname.startsWith(route));
       if (!isAllowed && isDashboardRoute) {
-        return NextResponse.redirect(new URL('/Pages/customersdevice', request.url));
+        return NextResponse.redirect(new URL('/Pages/customerDashboard', request.url));
       }
     }
 

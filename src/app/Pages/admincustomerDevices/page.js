@@ -388,9 +388,9 @@ function CustomerDeviceContent() {
       if (deviceCodes === "WTL01") {
         targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       } else if (deviceCodes === "WCS4-01") {
-        targetUrl = `/Pages/reports/device-performance?serialCode=${code}&&deviceCode=${deviceCodes}`;
+        targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       } else if (deviceCodes === "WCS4-02") {
-        targetUrl = `/Pages/reports/activity-logs?serialCode=${code}&&deviceCode=${deviceCodes}`;
+        targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       }
 
       console.log('Navigating to:', targetUrl);

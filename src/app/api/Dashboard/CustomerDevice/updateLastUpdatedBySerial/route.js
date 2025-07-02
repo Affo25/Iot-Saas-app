@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToMongo from '../../../../lib/mongodb_connection';
 import CustomerDevice from '../../../../Models/CustomersDevice';
-import { authenticate } from '../../../../lib/auth';
 
 export async function POST(request) {
-  try {
-    // Authenticate the user (simplified for debugging)
     try {
-      const authResult = await authenticate(request);
-      if (!authResult.authenticated) {
-        console.log('⚠️ Authentication failed:', authResult.message);
-        return NextResponse.json({ success: false, message: authResult.message }, { status: 401 });
-      }
-    } catch (authError) {
-      console.log('⚠️ Authentication error:', authError.message);
-      // Continue anyway for debugging - remove this in production
-    }
-
+    
     await connectToMongo();
 
     const { device_serial_number, last_updated } = await request.json();
@@ -90,4 +78,5 @@ export async function POST(request) {
       { status: 500 }
     );
   }
+
 }

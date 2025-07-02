@@ -1,20 +1,4 @@
 "use client";
-/**
- * Customer Device Management Page
- * 
- * This page manages devices assigned to a specific customer.
- * 
- * Navigation Flow:
- * 1. Admin: User selects a customer from the Customers page (/Pages/customers)
- * 2. Customer: Customer logs in and sees their own devices
- * 3. DataTable component navigates to this page with customer_id parameter (for admin)
- * 4. Page receives customer_id from URL params OR gets it from logged-in user data
- * 5. Page fetches customer details and displays customer information
- * 6. Modal shows available devices for assignment to the selected customer
- * 
- * URL Format: /Pages/customersdevice?customer_id={customerId} (for admin)
- * URL Format: /Pages/customersdevice (for customer - no params needed)
- */
 import React, { useState, useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
@@ -404,9 +388,9 @@ function CustomerDeviceContent() {
       if (deviceCodes === "WTL01") {
         targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       } else if (deviceCodes === "WCS4-01") {
-        targetUrl = `/Pages/reports/device-performance?serialCode=${code}&&deviceCode=${deviceCodes}`;
+        targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       } else if (deviceCodes === "WCS4-02") {
-        targetUrl = `/Pages/reports/activity-logs?serialCode=${code}&&deviceCode=${deviceCodes}`;
+        targetUrl = `/Pages/reports/temperature-humidity?serialCode=${code}&&deviceCode=${deviceCodes}`;
       }
 
       console.log('Navigating to:', targetUrl);
