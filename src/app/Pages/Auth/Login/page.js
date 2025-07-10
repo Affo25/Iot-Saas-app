@@ -53,7 +53,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
          
 
-          <h2 className="text-3xl font-semibold text-gray-900 mb-1">Sign In</h2>
+          <h2 className="text-3xl font-semibold text-gray-900 mb-1">Sign in</h2>
           <p className="text-gray-600 mb-6">Enter your email and password to sign in!</p>
 
           {/* <div className="space-y-3">
@@ -146,7 +146,9 @@ export default function LoginPage() {
       {/* Right Panel (Visual) */}
       <div className="hidden md:block md:w-1/2 bg-[#0e1c4b] text-white flex flex-col justify-center items-center px-8">
         <div className="text-center">
-          <Image src="/logo/auth-logo.svg" alt="TailAdmin" width={200} height={200} className="mx-auto mb-4" />
+          <Image style={{
+                filter: 'invert(18%) sepia(99%) saturate(7492%) hue-rotate(215deg) brightness(95%) contrast(95%)',
+              }} src="/images/main-logo.png" alt="IOTSAAS" width={200} height={200} className="mx-auto mb-4" />
           {/* <h2 className="text-2xl font-bold mb-2">TailAdmin</h2> */}
           <p className="text-gray-300 text-sm">Free and Open-Source Iot Portal Admin Dashboard</p>
         </div>

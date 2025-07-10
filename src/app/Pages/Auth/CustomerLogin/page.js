@@ -145,13 +145,15 @@ export default function CustomerLoginPage() {
       </div>
 
       {/* Right Panel (Visual) */}
-      <div className="hidden md:block md:w-1/2 bg-[#0e1c4b] text-white flex flex-col justify-center items-center px-8">
-        <div className="text-center">
-          <Image src="/logo/auth-logo.svg" alt="TailAdmin" width={200} height={200} className="mx-auto mb-4" />
-          {/* <h2 className="text-2xl font-bold mb-2">TailAdmin</h2> */}
-          <p className="text-gray-300 text-sm">Free and Open-Source Iot Portal Admin Dashboard</p>
-        </div>
-      </div>
+     <div className="hidden md:block md:w-1/2 bg-[#0e1c4b] text-white flex flex-col justify-center items-center px-8">
+             <div className="text-center">
+               <Image style={{
+                filter: 'invert(18%) sepia(99%) saturate(7492%) hue-rotate(215deg) brightness(95%) contrast(95%)',
+              }} src="/images/main-logo.png" alt="IOTSAAS" width={200} height={200} className="mx-auto mb-4" />
+               {/* <h2 className="text-2xl font-bold mb-2">TailAdmin</h2> */}
+               <p className="text-gray-300 text-sm">Free and Open-Source Iot Portal Admin Dashboard</p>
+             </div>
+           </div>
     </div>
   );
 }

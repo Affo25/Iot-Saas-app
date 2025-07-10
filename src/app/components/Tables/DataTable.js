@@ -134,10 +134,10 @@ const handleNavigate = (item) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-xl w-full h-auto  border border-gray-400">
       {/* Outer Card Header */}
-      <div className="flex justify-between items-center pb-4 border-b border-gray-200 mb-6">
+      {/* <div className="flex justify-between items-center pb-4 border-b border-gray-200 mb-6">
         <h2 style={{ padding: "11px 30px", marginBottom: "0px", fontSize: "20px", marginTop: "10px" }} className="text-xl font-bold text-gray-900">{title}</h2>
 
-      </div>
+      </div> */}
 
       {/* Inner Table Card */}
       <div style={{ margin: "20px" }} className=" rounded-xl p-4 border border-gray-400">

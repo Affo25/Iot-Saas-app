@@ -372,6 +372,11 @@ function CustomerDeviceContent() {
     return device ? device.device_name : deviceCode;
   };
 
+  const getDevicePermissions = (deviceCode) => {
+    const device = devices.find(d => d.device_code === deviceCode);
+    return device ? device.device_field || [] : [];
+  };
+
   const filteredCustomerDevices = customerDevices.filter(
     (device) => device.customer_id === customerId
   );
@@ -546,87 +551,6 @@ function CustomerDeviceContent() {
         );
       },
     },
-
-    {
-      header: "Inputs",
-      accessor: "inputs",
-      render: (value, item) => {
-        const inputs = ["inp1", "inp2", "inp3", "inp4"];
-
-        return (
-          <div className="input-controls d-flex flex-wrap">
-            {inputs.map((inputKey, index) => {
-              const inputValue = item[inputKey];
-              const hasValue = inputValue && inputValue.trim() !== '';
-
-              return (
-                <button
-                  key={inputKey}
-                  className={`btn btn-xs mr-1 mb-1 ${hasValue ? 'btn-info' : 'btn-outline-secondary'}`}
-                  style={{
-                    fontSize: '10px',
-                    padding: '2px 6px',
-                    minWidth: '35px',
-                    opacity: hasValue ? 1 : 0.5
-                  }}
-                  onClick={() => {
-                    if (hasValue) {
-                      alert(`Input ${index + 1}:\n${inputValue}`);
-                    } else {
-                      alert(`Input ${index + 1}: Not configured`);
-                    }
-                  }}
-                  title={hasValue ? `Input ${index + 1}: ${inputValue}` : `Input ${index + 1}: Not configured`}
-                  disabled={!hasValue}
-                >
-                  I{index + 1}
-                </button>
-              );
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      header: "Outputs",
-      accessor: "outputs",
-      render: (value, item) => {
-        const outputs = ["outp1", "outp2", "outp3", "outp4"];
-
-        return (
-          <div className="output-controls d-flex flex-wrap">
-            {outputs.map((outputKey, index) => {
-              const outputValue = item[outputKey];
-              const hasValue = outputValue && outputValue.trim() !== '';
-
-              return (
-                <button
-                  key={outputKey}
-                  className={`btn btn-xs mr-1 mb-1 ${hasValue ? 'btn-success' : 'btn-outline-secondary'}`}
-                  style={{
-                    fontSize: '10px',
-                    padding: '2px 6px',
-                    minWidth: '35px',
-                    opacity: hasValue ? 1 : 0.5
-                  }}
-                  onClick={() => {
-                    if (hasValue) {
-                      alert(`Output ${index + 1}:\n${outputValue}`);
-                    } else {
-                      alert(`Output ${index + 1}: Not configured`);
-                    }
-                  }}
-                  title={hasValue ? `Output ${index + 1}: ${outputValue}` : `Output ${index + 1}: Not configured`}
-                  disabled={!hasValue}
-                >
-                  O{index + 1}
-                </button>
-              );
-            })}
-          </div>
-        );
-      },
-    },
     {
       header: "M1/M2",
       accessor: "m_values",
@@ -650,6 +574,75 @@ function CustomerDeviceContent() {
             {!item.m1 && !item.m2 && (
               <span className="text-muted small">-</span>
             )}
+          </div>
+        );
+      },
+    },
+    {
+      header: "Device Fields",
+      accessor: "device_fields",
+      render: (value, item) => {
+        const deviceFields = getDevicePermissions(item.device_code);
+        
+        if (!deviceFields || deviceFields.length === 0) {
+          return (
+            <div className="text-center">
+              <span className="text-muted small">No fields</span>
+            </div>
+          );
+        }
+
+        return (
+          <div className="device-fields-controls">
+            <div className="d-flex flex-wrap">
+              {deviceFields.map((field, index) => {
+                // Determine button style based on field type
+                let buttonClass = 'btn-secondary';
+                let buttonText = field.toUpperCase();
+                
+                if (field.startsWith('inp')) {
+                  buttonClass = 'btn-info';
+                  buttonText = field.replace('inp', 'I');
+                } else if (field.startsWith('outp')) {
+                  buttonClass = 'btn-success';
+                  buttonText = field.replace('outp', 'O');
+                } else if (field.startsWith('m')) {
+                  buttonClass = 'btn-warning';
+                  buttonText = field.toUpperCase();
+                }
+
+                // Get the actual value from the customer device record
+                const fieldValue = item[field];
+                const hasValue = fieldValue && fieldValue.trim() !== '';
+
+                return (
+                  <button
+                    key={index}
+                    className={`btn btn-xs ${buttonClass} mr-1 mb-1`}
+                    style={{
+                      fontSize: '10px',
+                      padding: '3px 8px',
+                      minWidth: '35px',
+                      opacity: hasValue ? 1 : 0.7,
+                      border: hasValue ? '2px solid #fff' : '1px solid transparent'
+                    }}
+                    onClick={() => {
+                      if (hasValue) {
+                        alert(`${field.toUpperCase()}:\n${fieldValue}`);
+                      } else {
+                        alert(`${field.toUpperCase()}: Not configured`);
+                      }
+                    }}
+                    title={hasValue ? `${field.toUpperCase()}: ${fieldValue}` : `${field.toUpperCase()}: Available but not configured`}
+                  >
+                    {buttonText}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-muted mt-1" style={{ fontSize: '9px' }}>
+              {deviceFields.length} field{deviceFields.length !== 1 ? 's' : ''} available
+            </div>
           </div>
         );
       },
