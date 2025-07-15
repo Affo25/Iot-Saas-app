@@ -18,6 +18,7 @@ function Sidebr() {
     { menu_url: '/Pages/customers', menu_title: 'Customers', icon: 'ni-users' },
     { menu_url: '/Pages/device', menu_title: 'Products', icon: 'ni-wifi' },
     { menu_url: '/Pages/devicelogs', menu_title: 'Log History', icon: 'ni-rss' },
+    { menu_url: '/Pages/mobiledeviceLogs', menu_title: 'RF Mobile Device', icon: 'ni-wifi' },
   ];
 
   const customerMenuItems = [

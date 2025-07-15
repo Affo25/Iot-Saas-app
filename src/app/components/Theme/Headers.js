@@ -18,16 +18,49 @@ export default function Headers() {
   const role = useUserRoleStore((state) => state.role);
   const [mounted, setMounted] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { userInfo, isLoggedIn, updateUserInfo } = useUserInfo();
   const { loading } = useSelector((state) => state.auth);
 
   // Handle client-side initialization
   useEffect(() => {
     setMounted(true);
-    import('bootstrap/dist/js/bootstrap.bundle.min.js');
+    
+    // Dynamic import of Bootstrap and initialize dropdowns
+    const initBootstrap = async () => {
+      const bootstrap = await import('bootstrap/dist/js/bootstrap.bundle.min.js');
+      
+      // Initialize all dropdown elements
+      const dropdownElements = document.querySelectorAll('.dropdown-toggle');
+      dropdownElements.forEach(element => {
+        new bootstrap.Dropdown(element);
+      });
+    };
+    
+    initBootstrap();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown')) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // Toggle dropdown
+  const toggleDropdown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDropdownOpen(!dropdownOpen);
+  };
+
   const handleLogout = async () => {
+    setDropdownOpen(false); // Close dropdown
     try {
       await dispatch(logout()).unwrap();
       // Clear local storage
@@ -117,8 +150,8 @@ export default function Headers() {
               <li className="dropdown user-dropdown">
                 <button
                   className="dropdown-toggle btn btn-clean"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="true"
+                  onClick={toggleDropdown}
+                  aria-expanded={dropdownOpen}
                   style={{ background: 'transparent', border: 'none' }}
                 >
                   <div className="user-toggle">
@@ -168,7 +201,7 @@ export default function Headers() {
                   </div>
                 </button>
 
-                <ul className="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
+                <ul className={`dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1 ${dropdownOpen ? 'show' : ''}`}>
                   {isLoggedIn ? (
                     <>
                       {/* User Profile Section */}
@@ -227,7 +260,10 @@ export default function Headers() {
                       <li>
                         <button
                           className="dropdown-item"
-                          onClick={() => router.push('/Pages')}
+                          onClick={() => {
+                            setDropdownOpen(false);
+                            router.push('/Pages');
+                          }}
                         >
                           <em className="icon ni ni-dashboard mr-2"></em>
                           <span style={{ fontSize: "14px", fontFamily: "Roboto" }}>
@@ -240,7 +276,10 @@ export default function Headers() {
                       <li>
                         <button
                           className="dropdown-item"
-                          onClick={() => toast.info('Profile settings coming soon!')}
+                          onClick={() => {
+                            setDropdownOpen(false);
+                            toast.info('Profile settings coming soon!');
+                          }}
                         >
                           <em className="icon ni ni-user-c mr-2"></em>
                           <span style={{ fontSize: "14px", fontFamily: "Roboto" }}>
@@ -270,7 +309,10 @@ export default function Headers() {
                     <li>
                       <button
                         className="dropdown-item"
-                        onClick={handleLogin}
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          handleLogin();
+                        }}
                       >
                         <em className="icon ni ni-signin mr-2"></em>
                         <span style={{ color: '#007bff', fontSize: "14px", fontWeight: "bold", fontFamily: "Roboto" }}>
