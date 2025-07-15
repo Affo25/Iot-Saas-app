@@ -62,6 +62,7 @@
     "slick-carousel": "^1.8.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "stripe": "^18.3.0",
     "sweetalert2": "^11.6.13",
     "toastr": "^2.1.4",
     "xlsx": "^0.18.5",

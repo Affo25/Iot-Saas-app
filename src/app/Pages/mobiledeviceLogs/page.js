@@ -438,10 +438,6 @@ function Page() {
         });
     };
 
-
-
-
-
     //  This is UI code start from here
 
     return (
