@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+// Function to get Stripe instance
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  });
+};
 
 export async function POST(request) {
   try {
@@ -18,6 +24,7 @@ export async function POST(request) {
     }
 
     // Confirm the payment intent
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
       payment_method: paymentMethodId,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`,
@@ -59,6 +66,7 @@ export async function GET(request) {
     }
 
     // Retrieve the payment intent to check its status
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     return NextResponse.json({

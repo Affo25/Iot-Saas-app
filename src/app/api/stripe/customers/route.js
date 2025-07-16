@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+// Function to get Stripe instance
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  });
+};
 
 // Create a new customer
 export async function POST(request) {
@@ -19,6 +25,7 @@ export async function POST(request) {
     }
 
     // Check if customer already exists
+    const stripe = getStripe();
     const existingCustomers = await stripe.customers.list({
       email: email,
       limit: 1,
@@ -84,6 +91,8 @@ export async function GET(request) {
 
     let customer;
 
+    const stripe = getStripe();
+    
     if (customerId) {
       // Get customer by ID
       customer = await stripe.customers.retrieve(customerId);
@@ -152,6 +161,7 @@ export async function PUT(request) {
       };
     }
 
+    const stripe = getStripe();
     const customer = await stripe.customers.update(customerId, updateData);
 
     return NextResponse.json({
@@ -192,6 +202,7 @@ export async function DELETE(request) {
       );
     }
 
+    const stripe = getStripe();
     const deletedCustomer = await stripe.customers.del(customerId);
 
     return NextResponse.json({

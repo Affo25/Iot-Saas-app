@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+// Function to get Stripe instance
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  });
+};
 
 // Create a new product
 export async function POST(request) {
@@ -25,6 +31,7 @@ export async function POST(request) {
     }
 
     // Create product
+    const stripe = getStripe();
     const product = await stripe.products.create({
       name,
       description,
@@ -82,6 +89,8 @@ export async function GET(request) {
     const active = searchParams.get('active');
     const limit = searchParams.get('limit') || 10;
 
+    const stripe = getStripe();
+    
     if (productId) {
       // Get specific product
       const product = await stripe.products.retrieve(productId);
@@ -190,6 +199,7 @@ export async function PUT(request) {
     if (images) updateData.images = images;
     if (active !== undefined) updateData.active = active;
 
+    const stripe = getStripe();
     const product = await stripe.products.update(productId, updateData);
 
     return NextResponse.json({
@@ -231,6 +241,7 @@ export async function DELETE(request) {
       );
     }
 
+    const stripe = getStripe();
     const deletedProduct = await stripe.products.del(productId);
 
     return NextResponse.json({

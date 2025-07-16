@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+// Function to get Stripe instance
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  });
+};
 
 export async function POST(request) {
   try {
@@ -19,6 +24,7 @@ export async function POST(request) {
     }
 
     // Create payment intent
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
       currency: currency.toLowerCase(),
@@ -65,6 +71,7 @@ export async function GET(request) {
     }
 
     // Retrieve payment intent
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     return NextResponse.json({
