@@ -9,6 +9,7 @@ const publicRoutes = [
   '/api/Auth/Verify',
   '/api/Dashboard/Devicelog',
   '/api/saveDevicelog',
+  '/api/stripe/payment-intent'
 ];
 
 const verifyToken = async (token) => {
